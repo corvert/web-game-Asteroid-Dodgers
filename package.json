@@ -1,0 +1,27 @@
+{
+  "name": "asteroid-dodgers",
+  "version": "1.0.0",
+  "description": "A multiplayer web game using DOM elements",
+  "main": "server.js",
+  "scripts": {
+    "start": "node multiplayer-server.js",
+    "dev": "nodemon server.js",
+    "multiplayer": "node multiplayer-server.js"
+  },
+  "keywords": [
+    "game",
+    "multiplayer",
+    "web",
+    "javascript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}

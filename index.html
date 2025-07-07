@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Asteroid Dodgers - Multiplayer Web Game</title>
+    <link rel="stylesheet" href="src/css/styles.css" />
+    <link rel="icon" type="image/x-icon" href="src/assets/favicon.ico" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+  </head>
+  <body>
+    <div id="game-container">
+      <!-- Loading Screen -->
+      <div id="loading-screen" class="screen">
+        <h1>Asteroid Dodgers</h1>
+        <div class="loading-animation">
+          <div class="spinner"></div>
+        </div>
+        <p>Loading game assets...</p>
+      </div>
+
+      <!-- Join Screen -->
+      <div id="join-screen" class="screen hidden">
+        <h1>Asteroid Dodgers</h1>
+        <div class="form-container">
+          <input type="text" id="player-name" placeholder="Enter your name" maxlength="15" />
+          <div class="room-controls">
+            <div class="room-selection">
+              <input type="text" id="room-id" placeholder="Room ID (leave empty to create)" />
+              <button id="refresh-rooms-btn" title="Refresh room list">
+                <i class="fa fa-refresh"></i>
+              </button>
+              <div id="room-dropdown" class="room-dropdown hidden">
+                <!-- Room options will be added here dynamically -->
+                <div class="room-dropdown-loading">Looking for active rooms...</div>
+              </div>
+            </div>
+            <button id="create-join-btn">Create/Join Game</button>
+          </div>
+          <p id="connection-status"></p>
+        </div>
+        <div class="waiting-room hidden">
+          <h2>Waiting Room</h2>
+          <p>Room ID: <span id="room-code"></span></p>
+          <p>Share this code with friends to join!</p>
+          <div id="players-list">
+            <!-- Player entries will be added here dynamically -->
+          </div>
+          <div class="waiting-room-buttons">
+            <button id="start-game-btn" class="hidden">Start Game</button>
+            <button id="leave-room-btn">Leave Room</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Game Screen -->
+      <div id="game-screen" class="screen hidden">
+        <div id="game-area">
+          <!-- Game elements will be created here -->
+        </div>
+        <div id="hud">
+          <div id="timer">00:00</div>
+          <div id="scoreboard">
+            <!-- Player scores will be added here dynamically -->
+          </div>
+        </div>
+      </div>
+      <!-- Game Menu -->
+      <div id="game-menu" class="hidden">
+        <h2>Game Paused</h2>
+        <button id="resume-btn">Resume Game</button>
+        <button id="restart-btn">Restart Game</button>
+        <button id="quit-btn">Quit Game</button>
+        <p class="keyboard-hint">Press ESC to resume</p>
+      </div>
+
+      <!-- Game Over Screen -->
+      <div id="game-over-screen" class="screen hidden">
+        <h1>Game Over</h1>
+        <div id="winner-display"></div>
+        <div id="final-scores"></div>
+        <button id="play-again-btn">Play Again</button>
+        <button id="exit-btn">Exit</button>
+      </div>
+    </div>
+
+    <!-- Load external libraries -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+    <!-- Load game scripts -->
+    <script src="src/js/utils.js"></script>
+    <script src="src/js/audio.js"></script>
+    <script src="src/js/player.js"></script>
+    <script src="src/js/game.js"></script>
+    <script src="src/js/networking.js"></script>
+    <script src="src/js/ui.js"></script>
+    <script src="src/js/main.js"></script>
+  </body>
+</html>
