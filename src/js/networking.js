@@ -173,6 +173,7 @@ class NetworkManager {
             console.log('Joined room:', data);
             this.roomId = data.roomId;
             this.isHost = data.isHost;
+            console.log(`Room joined - isHost status: ${this.isHost}`);
             
             // Update the used player names set
             this.usedPlayerNames.clear();
@@ -221,13 +222,15 @@ class NetworkManager {
         
         // Handle host change event
         this.socket.on('room:host_changed', (data) => {
-            console.log('Host changed:', data);
+            console.log('Host changed event received:', data);
             
+            // Update host status based on whether this player is the new host
             if (data.host === this.playerId) {
                 this.isHost = true;
                 console.log('You are now the host!');
             } else {
                 this.isHost = false;
+                console.log('You are not the host. New host ID:', data.host);
             }
             
             // Update UI and notify other components of host change
@@ -358,6 +361,9 @@ class NetworkManager {
         
         console.log(`Networking: ${cleanRoomId ? 'Joining existing room: ' + cleanRoomId : 'Creating new room'}`);
         
+        // Reset host status when joining a new room
+        this.isHost = false;
+        
         this.socket.emit('room:join', {
             name: playerName,
             roomId: cleanRoomId,
@@ -377,6 +383,7 @@ class NetworkManager {
         this.roomId = null;
         this.isHost = false;
         this.players.clear();
+        this.usedPlayerNames.clear();
     }
     
     /**

@@ -126,6 +126,9 @@ class AsteroidDodgers {    constructor() {
             return;
         }
         
+        // Reset host status in UI before joining a new room
+        this.ui.resetHostStatus();
+        
         if (this.debugLocalGame) {
             // Local testing mode - create a local game
             this.createLocalGame(playerName);
@@ -427,8 +430,11 @@ class AsteroidDodgers {    constructor() {
                 this.ui.showConnectionStatus(message, 'error');
                 // Play error sound
                 AudioSystem.play('error');
-            }else if (message.includes('Room is full')) {
+            } else if (message.includes('Room is full')) {
                 this.ui.showConnectionStatus('Room is full (maximum 4 players). Try creating a new room.', 'error');
+            } else if (message.includes('Game is already in progress')) {
+                // Handle game in progress errors
+                this.ui.showGameInProgressError('Game is already in progress. Please join another room or create a new one.');
             } else {
                 this.ui.showConnectionStatus(`Error: ${message}`, 'error');
             }
@@ -447,6 +453,9 @@ class AsteroidDodgers {    constructor() {
     handleRoomJoined(roomId, isHost, players) {
         this.ui.showWaitingRoom(roomId, isHost);
         this.ui.updatePlayersList(players, this.network.playerId);
+        
+        // Explicitly update host controls based on current isHost value
+        this.ui.updateHostControls(isHost);
         
         // Sound effect
         AudioSystem.play('join');
@@ -734,6 +743,9 @@ class AsteroidDodgers {    constructor() {
     handleLeaveRoom() {
         // Leave the room via network
         this.network.leaveRoom();
+        
+        // Explicitly reset host status in UI
+        this.ui.resetHostStatus();
         
         // Return to join screen
         this.ui.hideWaitingRoom();

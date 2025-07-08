@@ -231,6 +231,9 @@ class UIManager {
         } else {
             this.elements.startGameBtn.classList.add('hidden');
         }
+        
+        // Clear the room ID input field
+        this.elements.roomIdInput.value = '';
     }
     
     /**
@@ -748,5 +751,42 @@ class UIManager {
                 playerInfo.appendChild(hostBadge);
             }
         }
+    }
+    
+    /**
+     * Reset host status in the UI
+     * This ensures all host-related UI elements are reset when leaving a room
+     * or creating a new room
+     */
+    resetHostStatus() {
+        // Hide all host controls
+        this.updateHostControls(false);
+        
+        // Make sure start game button is hidden
+        this.elements.startGameBtn.classList.add('hidden');
+    }
+    
+    /**
+     * Show error message when trying to join a game that is in progress
+     * @param {string} message - Error message to display
+     */
+    showGameInProgressError(message) {
+        this.showConnectionStatus(message, 'error');
+        
+        // Reset the room ID input to allow joining another room
+        if (this.elements.roomIdInput) {
+            this.elements.roomIdInput.value = '';
+        }
+        
+        // Flash the input field to indicate error
+        if (this.elements.roomIdInput) {
+            this.elements.roomIdInput.classList.add('error');
+            setTimeout(() => {
+                this.elements.roomIdInput.classList.remove('error');
+            }, 1000);
+        }
+        
+        // Play error sound
+        AudioSystem.play('error');
     }
 }

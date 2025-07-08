@@ -37,8 +37,8 @@ function getActiveRooms() {
     const activeRooms = [];
     
     for (const [roomId, room] of rooms.entries()) {
-        // Only include rooms that are not already in a game and have space
-        if (room.players.length > 0 && room.players.length < 6 && !room.gameStarted) {
+        // Only include rooms that are not in progress and have space
+        if (room.players.length > 0 && room.players.length < 6 && !room.gameInProgress) {
             activeRooms.push({
                 id: roomId,
                 playerCount: room.players.length,
@@ -100,7 +100,14 @@ io.on('connection', (socket) => {
                 socket.emit('error', { message: 'Room is full (maximum 4 players)' });
                 return;
             }
-              // Check for duplicate player names in this room
+              
+            // Check if game is already in progress
+            if (joinedRoom.gameInProgress) {
+                socket.emit('error', { message: 'Game is already in progress. Please try joining another room.' });
+                return;
+            }
+              
+            // Check for duplicate player names in this room
             const nameExists = joinedRoom.players.some(player => 
                 player.name.toLowerCase() === name.toLowerCase()
             );
@@ -240,6 +247,7 @@ io.on('connection', (socket) => {
         
         // Start the game
         room.gameInProgress = true;
+        room.gameStarted = true;
           // Notify all players in the room
         io.to(roomId).emit('game:start', {
             players: room.players
@@ -270,6 +278,7 @@ io.on('connection', (socket) => {
                 // Check if there will be enough remaining players to continue
                 if (room.players.length <= 2) {  // This means only one player will be left after this player quits
                     room.gameInProgress = false;
+                    room.gameStarted = false;
                     io.to(roomId).emit('game:end', { 
                         playerId: socket.id, 
                         reason: 'quit',
@@ -295,6 +304,7 @@ io.on('connection', (socket) => {
                 // Only host can restart
                 if (room.host === socket.id) {
                     room.gameInProgress = false;
+                    room.gameStarted = false;
                     // Find player data to include name
                     const restartingPlayer = room.players.find(p => p.id === socket.id);
                     io.to(roomId).emit('game:restart', {
@@ -364,6 +374,7 @@ io.on('connection', (socket) => {
                 } else if (room.gameInProgress) {
                     // Not enough players left, end the game
                     room.gameInProgress = false;
+                    room.gameStarted = false;
                     socket.to(roomId).emit('game:end', { 
                         playerId: socket.id, 
                         reason: 'quit',
