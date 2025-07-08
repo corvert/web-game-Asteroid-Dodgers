@@ -350,7 +350,6 @@ button:hover {
 /* Game Notification */
 .game-notification {
     position: absolute;
-    top: 20%;
     left: 50%;
     transform: translateX(-50%);
     background-color: rgba(0, 0, 0, 0.7);
@@ -361,9 +360,10 @@ button:hover {
     font-size: 18px;
     z-index: 1000;
     text-align: center;
-    animation: fadeIn 0.3s, fadeOut 0.3s 2.7s;
+    animation: fadeIn 0.3s;
     pointer-events: none;
     /* Make sure it doesn't interfere with game clicks */
+    transition: top 0.3s ease;
 }
 
 @keyframes fadeIn {

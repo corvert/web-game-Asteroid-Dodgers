@@ -54,6 +54,11 @@ class UIManager {
             onLeaveRoom: null
         };
         
+        // Track active notifications for stacking
+        this.activeNotifications = [];
+        this.notificationBaseTop = 20; // Base top position in percentage
+        this.notificationSpacing = 5;  // Spacing between notifications in percentage
+        
         this.init();
     }
     
@@ -433,17 +438,7 @@ class UIManager {
      * @param {string} playerName - Name of player who paused the game
      */
     showPauseNotification(playerName) {
-        const notification = document.createElement('div');
-        notification.className = 'game-notification';
-        notification.textContent = `${playerName}`;
-        
-        // Append to game-container instead of body
-        const gameContainer = document.getElementById('game-container');
-        gameContainer.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.remove();
-        }, 3000);
+        this._createNotification(`${playerName}`, 3000);
     }
     
     /**
@@ -452,17 +447,56 @@ class UIManager {
      * @param {number} [duration=3000] - How long to show the notification in ms
      */
     showGameNotification(message, duration = 3000) {
+        this._createNotification(message, duration);
+    }
+    
+    /**
+     * Create and manage stacked notifications
+     * @private
+     * @param {string} message - Message to display
+     * @param {number} duration - How long to show the notification in ms
+     */
+    _createNotification(message, duration) {
         const notification = document.createElement('div');
         notification.className = 'game-notification';
         notification.textContent = message;
         
-        // Append to game-container instead of body
+        // Append to game-container
         const gameContainer = document.getElementById('game-container');
         gameContainer.appendChild(notification);
         
+        // Calculate position based on existing notifications
+        const topPosition = this.notificationBaseTop + (this.activeNotifications.length * this.notificationSpacing);
+        notification.style.top = `${topPosition}%`;
+        
+        // Add to active notifications
+        this.activeNotifications.push(notification);
+        
+        // Remove notification after duration
         setTimeout(() => {
+            // Remove from DOM
             notification.remove();
+            
+            // Remove from active notifications
+            const index = this.activeNotifications.indexOf(notification);
+            if (index !== -1) {
+                this.activeNotifications.splice(index, 1);
+            }
+            
+            // Reposition remaining notifications
+            this._repositionNotifications();
         }, duration);
+    }
+    
+    /**
+     * Reposition active notifications after one is removed
+     * @private
+     */
+    _repositionNotifications() {
+        this.activeNotifications.forEach((notif, index) => {
+            const topPosition = this.notificationBaseTop + (index * this.notificationSpacing);
+            notif.style.top = `${topPosition}%`;
+        });
     }
     
     /**
