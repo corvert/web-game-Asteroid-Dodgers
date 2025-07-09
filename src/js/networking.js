@@ -287,12 +287,8 @@ class NetworkManager {
             
             // Remove player from the players list
             if (data && data.playerId) {
+                // We don't need to call onPlayerLeft here as it will be handled by room:player_left event
                 this.players.delete(data.playerId);
-                
-                // If callback exists, notify application
-                if (this.callbacks.onPlayerLeft) {
-                    this.callbacks.onPlayerLeft(data.playerId, data.playerName);
-                }
             }
         });
 

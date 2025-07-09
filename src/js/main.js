@@ -725,11 +725,14 @@ class AsteroidDodgers {    constructor() {
             
             // Update UI to show host controls if needed
             this.ui.updateHostControls(true);
-        } else {
-            // Another player is now the host
+        } else if (hostName) {
+            // Only show notification if we have a valid host name
             this.ui.showGameNotification(`${hostName} is now the host`, 5000);
             
             // Update UI to hide host controls if needed
+            this.ui.updateHostControls(false);
+        } else {
+            // Just update controls without notification if host name is undefined
             this.ui.updateHostControls(false);
         }
         
