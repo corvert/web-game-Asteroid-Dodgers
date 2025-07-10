@@ -353,6 +353,10 @@ class AsteroidDodgers {    constructor() {
     handleGameOver(winnerId, scores) {
         const winner = scores.find(p => p.id === winnerId) || scores[0];
         
+        // Store last winner and scores for potential restart
+        this.game.lastWinner = winner;
+        this.game.lastScores = scores;
+        
         // Pass host status and local game flag to UI
         const isHost = !this.debugLocalGame && this.network.isHost;
         this.ui.showGameOver(winner, scores, isHost, this.debugLocalGame);

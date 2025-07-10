@@ -389,15 +389,21 @@ class UIManager {
     showGameOver(winner, scores, isHost = false, isLocalGame = false) {
         this.hideAllScreens();
         
-        // Display winner info
-        this.elements.winnerDisplay.textContent = `${winner.name} wins!`;
-        this.elements.winnerDisplay.style.color = winner.color;
+        // Display winner info - safely handle undefined winner
+        if (winner && winner.name) {
+            this.elements.winnerDisplay.textContent = `${winner.name} wins!`;
+            this.elements.winnerDisplay.style.color = winner.color;
+        } else {
+            this.elements.winnerDisplay.textContent = `Game Over!`;
+            this.elements.winnerDisplay.style.color = '#ffffff';
+        }
         
         // Display final scores
         const finalScores = this.elements.finalScores;
         finalScores.innerHTML = '';
         
         // Sort by score descending
+        scores = Array.isArray(scores) ? scores : [];
         scores.sort((a, b) => b.score - a.score);
         
         scores.forEach(player => {
