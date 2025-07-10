@@ -25,8 +25,7 @@ A real-time multiplayer web game where players control ships to avoid asteroids 
 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/asteroid-dodgers.git
-cd asteroid-dodgers
+git clone https://gitea.kood.tech/orvetpriimagi/web-game.git
 ```
 
 2. Install dependencies
