@@ -10,7 +10,7 @@ class AsteroidDodgers {    constructor() {
         this.config = {
             // Use local server by default when running locally
             serverUrl: window.location.hostname === 'localhost' ? 
-                window.location.origin : 'https://multiplayer-game-server.glitch.me', // WebSocket server URL
+                window.location.origin : 'https://web-game-asteroid-dodgers.onrender.com/', // WebSocket server URL
         };
         
         // Flag for local game debugging without server
