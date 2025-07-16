@@ -32,11 +32,10 @@ body {
     max-width: 1200px;
     max-height: 800px;
     background-color: rgba(0, 0, 0, 0.8);
-    /* Semi-transparent to show starfield */
     box-shadow: 0 0 20px rgba(216, 13, 13, 0.7);
     overflow: hidden;
     border: 2px solid rgba(255, 255, 255, 0.1);
-    /* Subtle border */
+
 }
 
 /* Screen Styles */
@@ -515,4 +514,252 @@ button:hover {
     padding: 15px;
     text-align: center;
     color: #888;
+}
+
+/* Instructions Section */
+.instructions-container {
+    width: 100%;
+    max-width: 600px;
+    margin-bottom: 2rem;
+}
+
+.instructions-toggle {
+    width: 100%;
+    background-color: rgba(76, 175, 80, 0.2);
+    color: #4CAF50;
+    border: 2px solid rgba(76, 175, 80, 0.5);
+    padding: 15px 20px;
+    font-size: 18px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 0;
+}
+
+.instructions-toggle:hover {
+    background-color: rgba(76, 175, 80, 0.3);
+    border-color: rgba(76, 175, 80, 0.8);
+}
+
+.instructions-toggle .toggle-icon {
+    transition: transform 0.3s ease;
+}
+
+.instructions-toggle.active .toggle-icon {
+    transform: rotate(180deg);
+}
+
+.instructions-content {
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 2px solid rgba(76, 175, 80, 0.3);
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    padding: 0;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    max-height: 0;
+}
+
+.instructions-content.show {
+    max-height: 70vh;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+/* Custom scrollbar for instructions */
+.instructions-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.instructions-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.instructions-content::-webkit-scrollbar-thumb {
+    background: rgba(76, 175, 80, 0.6);
+    border-radius: 4px;
+}
+
+.instructions-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(76, 175, 80, 0.8);
+}
+
+.instructions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.instruction-section {
+    background-color: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.instruction-section h3 {
+    color: #4CAF50;
+    margin-bottom: 10px;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.instruction-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.instruction-section li {
+    margin-bottom: 8px;
+    padding-left: 15px;
+    position: relative;
+}
+
+.instruction-section li:before {
+    content: "▶";
+    color: #4CAF50;
+    position: absolute;
+    left: 0;
+}
+
+.controls-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.control-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+}
+
+.key-combo {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+kbd {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 12px;
+    font-family: monospace;
+    color: #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    min-width: 25px;
+    text-align: center;
+}
+
+/* Power-up list styles */
+.powerup-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.powerup-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px;
+    background-color: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.powerup-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    position: relative;
+    animation: pulse 2s infinite;
+}
+
+.powerup-icon.shield {
+    background-color: rgba(64, 224, 208, 0.7);
+    box-shadow: 0 0 8px #40E0D0;
+}
+
+.powerup-icon.speed {
+    background-color: rgba(255, 215, 0, 0.7);
+    box-shadow: 0 0 8px #FFD700;
+}
+
+.powerup-icon.score {
+    background-color: rgba(147, 112, 219, 0.7);
+    box-shadow: 0 0 8px #9370DB;
+}
+
+.powerup-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.powerup-info strong {
+    color: #4CAF50;
+    font-size: 14px;
+}
+
+.powerup-info span {
+    color: #cccccc;
+    font-size: 12px;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.7;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+}
+
+/* Responsive adjustments for instructions */
+@media (max-width: 768px) {
+    .instructions-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .instructions-content.show {
+        max-height: 60vh;
+    }
+
+    .control-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+
+    .instructions-container {
+        max-width: 95%;
+    }
+
+    .powerup-item {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+
+    .instruction-section {
+        padding: 12px;
+    }
 }

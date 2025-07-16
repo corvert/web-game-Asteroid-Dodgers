@@ -218,12 +218,28 @@ class Player {
             }
         }
         
-        // Wrap around screen edges with safety margin
-        const margin = 20; // Keep 20px away from exact edge
-        if (this.x < -margin) this.x = bounds.width - margin;
-        if (this.x > bounds.width + margin) this.x = margin;
-        if (this.y < -margin) this.y = bounds.height - margin;
-        if (this.y > bounds.height + margin) this.y = margin;
+        // Keep player within screen boundaries (no wrapping)
+        const margin = 20; // Keep player 20px away from exact edge
+        
+        // Left and right boundaries
+        if (this.x < margin) {
+            this.x = margin;
+            this.velocityX = 0; // Stop horizontal movement
+        }
+        if (this.x > bounds.width - margin) {
+            this.x = bounds.width - margin;
+            this.velocityX = 0; // Stop horizontal movement
+        }
+        
+        // Top and bottom boundaries
+        if (this.y < margin) {
+            this.y = margin;
+            this.velocityY = 0; // Stop vertical movement
+        }
+        if (this.y > bounds.height - margin) {
+            this.y = bounds.height - margin;
+            this.velocityY = 0; // Stop vertical movement
+        }
         
         // Update visual position
         this.updatePosition();
@@ -316,12 +332,12 @@ class Player {
         const safeY = Math.max(20, Math.min(maxHeight - 20, this.y));
         
         // If position was clamped significantly, log it
-        if (Math.abs(safeX - this.x) > 5 || Math.abs(safeY - this.y) > 5) {
-            console.warn(`Player ${this.name} position clamped from (${this.x}, ${this.y}) to (${safeX}, ${safeY})`);
-            // Update the actual position to the clamped value to prevent repeated warnings
-            this.x = safeX;
-            this.y = safeY;
-        }
+        // if (Math.abs(safeX - this.x) > 5 || Math.abs(safeY - this.y) > 5) {
+        //     console.warn(`Player ${this.name} position clamped from (${this.x}, ${this.y}) to (${safeX}, ${safeY})`);
+        //     // Update the actual position to the clamped value to prevent repeated warnings
+        //     this.x = safeX;
+        //     this.y = safeY;
+        // }
         
         this.element.style.left = `${safeX}px`;
         this.element.style.top = `${safeY}px`;

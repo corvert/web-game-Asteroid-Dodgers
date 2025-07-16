@@ -25,6 +25,107 @@
       <!-- Join Screen -->
       <div id="join-screen" class="screen hidden">
         <h1>Asteroid Dodgers</h1>
+
+        <!-- Instructions Section -->
+        <div class="instructions-container">
+          <button class="instructions-toggle" id="instructions-toggle">
+            <i class="fa fa-question-circle"></i> How to Play
+            <i class="fa fa-chevron-down toggle-icon"></i>
+          </button>
+          <div class="instructions-content hidden" id="instructions-content">
+            <div class="instructions-grid">
+              <div class="instruction-section">
+                <h3><i class="fa fa-gamepad"></i> Controls</h3>
+                <div class="controls-list">
+                  <div class="control-item">
+                    <span class="key-combo"> <kbd>↑</kbd> or <kbd>W</kbd> </span>
+                    <span>Move Forward</span>
+                  </div>
+                  <div class="control-item">
+                    <span class="key-combo"> <kbd>↓</kbd> or <kbd>S</kbd> </span>
+                    <span>Break/Slow Down</span>
+                  </div>
+                  <div class="control-item">
+                    <span class="key-combo"> <kbd>←</kbd> or <kbd>A</kbd> </span>
+                    <span>Turn Left</span>
+                  </div>
+                  <div class="control-item">
+                    <span class="key-combo"> <kbd>→</kbd> or <kbd>D</kbd> </span>
+                    <span>Turn Right</span>
+                  </div>
+                  <div class="control-item">
+                    <span class="key-combo">
+                      <kbd>ESC</kbd>
+                    </span>
+                    <span>Pause/Resume</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="instruction-section">
+                <h3><i class="fa fa-target"></i> Objective</h3>
+                <ul>
+                  <li>Navigate your spaceship through the asteroid field</li>
+                  <li>Avoid colliding with asteroids to stay alive</li>
+                  <li>Survive longer than other players to win</li>
+                  <li>The last player standing wins the round!</li>
+                </ul>
+              </div>
+
+              <div class="instruction-section">
+                <h3><i class="fa fa-lightbulb-o"></i> Tips</h3>
+                <ul>
+                  <li>Stay alert - asteroids move in unpredictable patterns</li>
+                  <li>Use smooth movements to navigate tight spaces</li>
+                  <li>Watch other players' positions for strategic advantages</li>
+                  <li>Don't panic - steady movements often work better than quick jerks</li>
+                  <li>Collect powerups to gain temporary advantages</li>
+                  <li>
+                    Your ship will stop at the screen borders - plan your movements accordingly
+                  </li>
+                </ul>
+              </div>
+
+              <div class="instruction-section">
+                <h3><i class="fa fa-star"></i> Powerups</h3>
+                <div class="powerup-list">
+                  <div class="powerup-item">
+                    <div class="powerup-icon shield"></div>
+                    <div class="powerup-info">
+                      <strong>Shield</strong>
+                      <span>5 seconds of invulnerability to asteroids</span>
+                    </div>
+                  </div>
+                  <div class="powerup-item">
+                    <div class="powerup-icon speed"></div>
+                    <div class="powerup-info">
+                      <strong>Speed Boost</strong>
+                      <span>50% faster movement for 5 seconds</span>
+                    </div>
+                  </div>
+                  <div class="powerup-item">
+                    <div class="powerup-icon score"></div>
+                    <div class="powerup-info">
+                      <strong>Bonus Points</strong>
+                      <span>Instantly gain 50 bonus points</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="instruction-section">
+                <h3><i class="fa fa-users"></i> Multiplayer</h3>
+                <ul>
+                  <li>Create a room or join an existing one</li>
+                  <li>Share the room code with friends</li>
+                  <li>Wait for all players to join before starting</li>
+                  <li>Enjoy competing against friends in real-time!</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="form-container">
           <input type="text" id="player-name" placeholder="Enter your name" maxlength="15" />
           <div class="room-controls">
