@@ -47,6 +47,11 @@ class Player {
         this.invulnerable = false;
         this.respawnTime = 2000; // 2 seconds
         
+        // Survival time tracking
+        this.gameStartTime = null; // Will be set when game starts
+        this.deathTime = null; // Will be set when player dies
+        this.survivalTime = 0; // Time survived in seconds
+        
         // Performance optimization flags
         this.needsUpdate = false;
         this.lastUpdateTime = 0;
@@ -355,8 +360,8 @@ class Player {
         // Debug position for the first 5 frames
         if (this._debugFrames === undefined) this._debugFrames = 0;
         if (this._debugFrames < 5) {
-            console.log(`Player ${this.name} position: ${safeX}, ${safeY}, bounds: ${maxWidth}x${maxHeight}`);
-            this._debugFrames++;
+            // console.log(`Player ${this.name} position: ${safeX}, ${safeY}, bounds: ${maxWidth}x${maxHeight}`);
+            // this._debugFrames++;
         }
     }
     
@@ -370,6 +375,10 @@ class Player {
         
         if (this.lives <= 0) {
             this.isAlive = false;
+            // Record death time for survival calculation
+            this.deathTime = performance.now();
+            this.updateSurvivalTime();
+            
             if (this.element) {
                 this.element.classList.add('exploding');
                 setTimeout(() => {
@@ -451,5 +460,35 @@ class Player {
         this.isAlive = data.isAlive;
         
         this.updatePosition();
+    }
+    
+    /**
+     * Start tracking survival time when the game begins
+     */
+    startSurvivalTracking() {
+        this.gameStartTime = performance.now();
+        this.deathTime = null;
+        this.survivalTime = 0;
+    }
+    
+    /**
+     * Update survival time calculation
+     */
+    updateSurvivalTime() {
+        if (this.gameStartTime) {
+            const endTime = this.deathTime || performance.now();
+            this.survivalTime = (endTime - this.gameStartTime) / 1000; // Convert to seconds
+        }
+    }
+    
+    /**
+     * Get formatted survival time string
+     * @returns {string} Formatted survival time (e.g., "2:35")
+     */
+    getFormattedSurvivalTime() {
+        const totalSeconds = Math.floor(this.survivalTime);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     }
 }

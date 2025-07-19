@@ -341,20 +341,64 @@ button:hover {
     margin-bottom: 2rem;
     text-align: center;
     width: 100%;
-    max-width: 400px;
+    max-width: 500px;
 }
 
 .final-score-entry {
     display: flex;
     justify-content: space-between;
-    padding: 5px 10px;
+    align-items: center;
+    padding: 8px 15px;
     margin: 5px 0;
     background-color: rgba(255, 255, 255, 0.1);
     border-radius: 5px;
 }
 
+.final-score-entry>div {
+    flex: 1;
+    text-align: center;
+}
+
+.final-score-entry>div:first-child {
+    text-align: left;
+    flex: 2;
+}
+
+.final-score-entry>div:last-child {
+    text-align: right;
+    flex: 1;
+}
+
 .winner {
     background-color: rgba(76, 175, 80, 0.3);
+}
+
+.final-score-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 15px;
+    margin: 5px 0 10px 0;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    font-weight: bold;
+    font-size: 0.9em;
+    opacity: 0.9;
+}
+
+.final-score-header>div {
+    flex: 1;
+    text-align: center;
+}
+
+.final-score-header>div:first-child {
+    text-align: left;
+    flex: 2;
+}
+
+.final-score-header>div:last-child {
+    text-align: right;
+    flex: 1;
 }
 
 /* Game Notification */

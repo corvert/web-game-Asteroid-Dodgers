@@ -705,6 +705,16 @@ class UIManager {
         const finalScores = this.elements.finalScores;
         finalScores.innerHTML = '';
         
+        // Add header row
+        const headerRow = document.createElement('div');
+        headerRow.className = 'final-score-header';
+        headerRow.innerHTML = `
+            <div>Player</div>
+            <div>Score</div>
+            <div>Survived</div>
+        `;
+        finalScores.appendChild(headerRow);
+        
         // Sort by score descending
         scores = Array.isArray(scores) ? scores : [];
         scores.sort((a, b) => b.score - a.score);
@@ -724,8 +734,14 @@ class UIManager {
             const scoreElement = document.createElement('div');
             scoreElement.textContent = player.score;
             
+            const survivalElement = document.createElement('div');
+            survivalElement.textContent = player.formattedSurvivalTime || '0:00';
+            survivalElement.style.fontSize = '0.9em';
+            survivalElement.style.opacity = '0.8';
+            
             scoreEntry.appendChild(nameElement);
             scoreEntry.appendChild(scoreElement);
+            scoreEntry.appendChild(survivalElement);
             finalScores.appendChild(scoreEntry);
         });
         

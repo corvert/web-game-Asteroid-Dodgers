@@ -18,7 +18,7 @@ class Game {
         
         // Game settings
         this.settings = {
-            gameDuration: 180, // 3 minutes
+            gameDuration: 120, // 2 minutes
             maxPlayers: 4,
             maxAsteroids: 15,
             asteroidSpawnRate: 2000, // ms
@@ -290,6 +290,11 @@ class Game {
         this.lastAsteroidSpawn = this.lastFrameTime;
         this.lastPowerupSpawn = this.lastFrameTime;
         
+        // Start survival time tracking for all players
+        for (const player of this.players.values()) {
+            player.startSurvivalTracking();
+        }
+        
         // Start animation loop
         this.gameLoop();
     }
@@ -329,13 +334,22 @@ class Game {
                     this.callbacks.onTimeUpdate(Math.floor(this.gameTime));
                 }
                 if (this.callbacks.onScoreUpdate) {
+                    // Update survival time for alive players
+                    for (const player of this.players.values()) {
+                        if (player.isAlive) {
+                            player.updateSurvivalTime();
+                        }
+                    }
+                    
                     const scores = Array.from(this.players.values()).map(p => ({
                         id: p.id,
                         name: p.name,
                         score: p.score,
                         lives: p.lives,
                         color: p.color,
-                        isAlive: p.isAlive
+                        isAlive: p.isAlive,
+                        survivalTime: p.survivalTime,
+                        formattedSurvivalTime: p.getFormattedSurvivalTime()
                     }));
                     this.callbacks.onScoreUpdate(scores);
                 }
@@ -511,7 +525,7 @@ class Game {
         const x = margin + Math.random() * safeWidth;
         const y = margin + Math.random() * safeHeight;
         
-        console.log(`Spawning powerup at: (${x}, ${y}), game area: ${this.bounds.width}x${this.bounds.height}`);
+       // console.log(`Spawning powerup at: (${x}, ${y}), game area: ${this.bounds.width}x${this.bounds.height}`);
         
         // Create powerup element
         const element = document.createElement('div');
@@ -586,7 +600,7 @@ class Game {
                 powerup.x = Math.max(50, Math.min(maxWidth - 50, powerup.x));
                 powerup.y = Math.max(50, Math.min(maxHeight - 50, powerup.y));
                 
-                console.log(`Adjusted out-of-bounds powerup to: (${powerup.x}, ${powerup.y})`);
+               // console.log(`Adjusted out-of-bounds powerup to: (${powerup.x}, ${powerup.y})`);
             }
             
             // Update visual position
@@ -629,9 +643,9 @@ class Game {
                     
                     // Check if player died
                     if (isDead) {
-                        // Check game over condition
+                        // Check game over condition - only end if ALL players are dead
                         const alivePlayers = Array.from(this.players.values()).filter(p => p.isAlive);
-                        if (alivePlayers.length <= 1) {
+                        if (alivePlayers.length <=1) {
                             this.endGame();
                         }
                     }
@@ -726,6 +740,13 @@ class Game {
         // Play game over sound
         AudioSystem.play('gameover');
         
+        // Update survival time for all players who are still alive
+        for (const player of this.players.values()) {
+            if (player.isAlive) {
+                player.updateSurvivalTime();
+            }
+        }
+        
         // Determine winner based on score
         const playersList = Array.from(this.players.values());
         playersList.sort((a, b) => b.score - a.score);
@@ -736,7 +757,10 @@ class Game {
             name: p.name,
             score: p.score,
             isWinner: p === winner,
-            color: p.color
+            color: p.color,
+            survivalTime: p.survivalTime,
+            formattedSurvivalTime: p.getFormattedSurvivalTime(),
+            isAlive: p.isAlive
         }));
         
         // Trigger game over callback
