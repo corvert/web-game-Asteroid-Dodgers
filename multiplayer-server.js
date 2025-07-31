@@ -131,6 +131,10 @@ io.on('connection', (socket) => {
         joinedRoom.players.push(player);
         socket.join(joinedRoom.id);
         
+        // Store room ID and player name on socket for disconnect handling
+        socket.roomId = joinedRoom.id;
+        socket.playerName = name;
+        
         console.log(`Player ${socket.id} joined room ${joinedRoom.id}`);
           // Notify player they've joined
         socket.emit('room:joined', {
@@ -178,6 +182,9 @@ io.on('connection', (socket) => {
                 const playerSocket = io.sockets.sockets.get(player.id);
                 if (playerSocket) {
                     playerSocket.leave(roomId);
+                    // Clean up socket data for other players too
+                    playerSocket.roomId = null;
+                    playerSocket.playerName = null;
                 }
             }
             
@@ -225,6 +232,10 @@ io.on('connection', (socket) => {
         
         // Leave the socket.io room
         socket.leave(roomId);
+        
+        // Clean up socket data
+        socket.roomId = null;
+        socket.playerName = null;
     });
     
     // Game start handler
@@ -332,55 +343,105 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         console.log(`Player disconnected: ${socket.id}`);
         
-        // Handle player leaving any rooms
-        if (socket.roomId) {
-            const roomId = socket.roomId;
+        // Find the room this player was in
+        const roomId = socket.roomId || findPlayerRoom(socket.id);
+        
+        if (roomId) {
             const room = rooms.get(roomId);
             
             if (room) {
+                // Check if player is the host and game hasn't started yet
+                const isHost = room.host === socket.id;
+                const gameNotStarted = !room.gameInProgress;
+                
+                // Find the leaving player before removing them from the array
+                const leavingPlayer = room.players.find(p => p.id === socket.id);
+                const playerName = leavingPlayer ? leavingPlayer.name : (socket.playerName || 'Unknown player');
+                
                 // Remove player from room
                 room.players = room.players.filter(p => p.id !== socket.id);
-                  // Notify other players
-                socket.to(roomId).emit('room:player_left', { 
-                    id: socket.id,
-                    name: socket.playerName || 'Unknown player'
-                });
                 
-                console.log(`Player ${socket.id} (${socket.playerName || 'Unknown'}) left room ${roomId}`);
-                
-                if (room.players.length === 0) {
-                    // Room is empty, remove it
+                // Special case: If the host is disconnecting before the game starts, close the room
+                if (isHost && gameNotStarted) {
+                    console.log(`Host ${socket.id} (${playerName}) disconnected from room ${roomId} before game start - closing room`);
+                    
+                    // Notify all players that the room is being closed because host left
+                    socket.to(roomId).emit('room:closed', { 
+                        reason: 'host_disconnected',
+                        message: 'Room closed because the host disconnected',
+                        hostName: playerName
+                    });
+                    
+                    // Force all remaining players to leave the socket.io room
+                    for (const player of room.players) {
+                        const playerSocket = io.sockets.sockets.get(player.id);
+                        if (playerSocket) {
+                            playerSocket.leave(roomId);
+                            playerSocket.roomId = null;
+                            playerSocket.playerName = null;
+                        }
+                    }
+                    
+                    // Remove the room
                     rooms.delete(roomId);
-                    console.log(`Removed empty room: ${roomId}`);
-                } else if (room.host === socket.id) {
-                    // Host left, assign a new host
-                    room.host = room.players[0].id;
+                    console.log(`Room ${roomId} removed (host disconnected before game start)`);
+                } else {
+                    // Standard case: Regular player disconnecting or host disconnecting during game
+                    console.log(`Player ${socket.id} (${playerName}) disconnected from room ${roomId}`);
                     
-                    socket.to(roomId).emit('room:host_changed', { 
-                        host: room.host,
-                        hostName: room.players[0].name
+                    // Notify other players
+                    socket.to(roomId).emit('room:player_left', { 
+                        id: socket.id,
+                        name: playerName
                     });
                     
-                    console.log(`New host for room ${roomId}: ${room.host} (${room.players[0].name})`);
+                    // If room is empty, remove it
+                    if (room.players.length === 0) {
+                        rooms.delete(roomId);
+                        console.log(`Room ${roomId} removed (empty)`);
+                    } else if (isHost && room.players.length > 0) {
+                        // Host left during game, assign new host
+                        const newHost = room.players[0];
+                        room.host = newHost.id;
+                        room.hostName = newHost.name;
+                        
+                        // Update player as new host
+                        newHost.isHost = true;
+                        
+                        // Notify new host
+                        io.to(newHost.id).emit('room:host_changed', { isHost: true });
+                        
+                        // Notify all players about the new host
+                        socket.to(roomId).emit('room:host_changed', { 
+                            host: newHost.id,
+                            hostName: newHost.name
+                        });
+                        
+                        console.log(`New host for room ${roomId}: ${newHost.id} (${newHost.name})`);
+                    }
+                    
+                    // If game is in progress and there are enough players left (more than 1)
+                    if (room.gameInProgress && room.players.length >= 2) {
+                        // Game should continue, inform remaining players about the disconnection
+                        socket.to(roomId).emit('player:quit', { 
+                            playerId: socket.id,
+                            playerName: playerName
+                        });
+                    } else if (room.gameInProgress) {
+                        // Not enough players left, end the game
+                        room.gameInProgress = false;
+                        room.gameStarted = false;
+                        socket.to(roomId).emit('game:end', { 
+                            playerId: socket.id, 
+                            reason: 'quit',
+                            playerName: playerName
+                        });
+                    }
                 }
                 
-                // If game is in progress and there are enough players left (more than 1)
-                if (room.gameInProgress && room.players.length >= 2) {
-                    // Game should continue, inform remaining players about the disconnection
-                    socket.to(roomId).emit('player:quit', { 
-                        playerId: socket.id,
-                        playerName: socket.playerName || 'Unknown player'
-                    });
-                } else if (room.gameInProgress) {
-                    // Not enough players left, end the game
-                    room.gameInProgress = false;
-                    room.gameStarted = false;
-                    socket.to(roomId).emit('game:end', { 
-                        playerId: socket.id, 
-                        reason: 'quit',
-                        playerName: socket.playerName || 'Unknown player'
-                    });
-                }
+                // Clean up socket data
+                socket.roomId = null;
+                socket.playerName = null;
             }
         }
     });
@@ -456,15 +517,58 @@ setInterval(() => {
     let roomsRemoved = 0;
     
     for (const [roomId, room] of rooms.entries()) {
+        let shouldRemove = false;
+        
         // Remove rooms inactive for more than 2 hours
         if (now - room.createdAt > 2 * 60 * 60 * 1000 && !room.gameInProgress) {
+            shouldRemove = true;
+        }
+        
+        // Remove rooms where all players have disconnected (ghost rooms)
+        if (room.players.length > 0) {
+            const connectedPlayers = room.players.filter(player => {
+                const socket = io.sockets.sockets.get(player.id);
+                return socket && socket.connected;
+            });
+            
+            if (connectedPlayers.length === 0) {
+                console.log(`Found ghost room ${roomId} with ${room.players.length} disconnected players`);
+                shouldRemove = true;
+            } else if (connectedPlayers.length < room.players.length) {
+                // Remove disconnected players from the room
+                const disconnectedCount = room.players.length - connectedPlayers.length;
+                room.players = connectedPlayers;
+                console.log(`Removed ${disconnectedCount} disconnected players from room ${roomId}`);
+                
+                // If host was disconnected, assign new host
+                if (connectedPlayers.length > 0 && !connectedPlayers.some(p => p.id === room.host)) {
+                    const newHost = connectedPlayers[0];
+                    room.host = newHost.id;
+                    room.hostName = newHost.name;
+                    newHost.isHost = true;
+                    
+                    // Notify new host
+                    io.to(newHost.id).emit('room:host_changed', { isHost: true });
+                    
+                    // Notify all players about the new host
+                    io.to(roomId).emit('room:host_changed', { 
+                        host: newHost.id,
+                        hostName: newHost.name
+                    });
+                    
+                    console.log(`Assigned new host for room ${roomId}: ${newHost.id} (${newHost.name})`);
+                }
+            }
+        }
+        
+        if (shouldRemove) {
             rooms.delete(roomId);
             roomsRemoved++;
         }
     }
     
     if (roomsRemoved > 0) {
-        console.log(`Cleaned up ${roomsRemoved} inactive rooms`);
+        console.log(`Cleaned up ${roomsRemoved} inactive/ghost rooms`);
     }
 }, 5 * 60 * 1000);
 
