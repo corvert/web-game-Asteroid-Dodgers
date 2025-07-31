@@ -51,6 +51,8 @@ body {
     background-color: rgba(0, 0, 0, 0.85);
     /* Slightly more transparent */
     transition: all 0.3s ease;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .hidden {
@@ -85,6 +87,11 @@ body {
 }
 
 /* Join Screen */
+#join-screen {
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
 #join-screen h1 {
     font-size: 3rem;
     margin-bottom: 2rem;
@@ -565,6 +572,8 @@ button:hover {
     width: 100%;
     max-width: 600px;
     margin-bottom: 2rem;
+    position: relative;
+    z-index: 10;
 }
 
 .instructions-toggle {
@@ -581,6 +590,9 @@ button:hover {
     cursor: pointer;
     transition: all 0.3s ease;
     margin-bottom: 0;
+    position: sticky;
+    top: 0;
+    z-index: 11;
 }
 
 .instructions-toggle:hover {
@@ -605,12 +617,16 @@ button:hover {
     transition: all 0.3s ease;
     overflow: hidden;
     max-height: 0;
+    position: relative;
+    z-index: 9;
 }
 
 .instructions-content.show {
-    max-height: 70vh;
+    max-height: 50vh;
     padding: 20px;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    /* iOS smooth scrolling */
 }
 
 /* Custom scrollbar for instructions */
@@ -784,7 +800,7 @@ kbd {
     }
 
     .instructions-content.show {
-        max-height: 60vh;
+        max-height: 40vh;
     }
 
     .control-item {
@@ -805,5 +821,71 @@ kbd {
 
     .instruction-section {
         padding: 12px;
+    }
+}
+
+/* Landscape orientation specific styles */
+@media (orientation: landscape) and (max-height: 600px) {
+    .instructions-content.show {
+        max-height: 35vh;
+    }
+
+    .instructions-container {
+        margin-bottom: 1rem;
+    }
+
+    .form-container {
+        padding: 0.5rem;
+    }
+
+    #join-screen h1 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+}
+
+/* Portrait orientation specific styles */
+@media (orientation: portrait) and (max-width: 768px) {
+    .instructions-content.show {
+        max-height: 30vh;
+    }
+
+    .instructions-container {
+        margin-bottom: 1rem;
+    }
+
+    .form-container {
+        padding: 0.5rem;
+    }
+
+    #join-screen h1 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .screen {
+        justify-content: flex-start;
+        padding-top: 2rem;
+    }
+}
+
+/* Very small screens */
+@media (max-height: 500px) {
+    .instructions-content.show {
+        max-height: 25vh;
+    }
+
+    .instructions-container {
+        margin-bottom: 0.5rem;
+    }
+
+    #join-screen h1 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .screen {
+        justify-content: flex-start;
+        padding-top: 1rem;
     }
 }

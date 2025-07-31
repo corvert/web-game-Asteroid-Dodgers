@@ -78,6 +78,72 @@ class UIManager {
         if (storedName) {
             this.elements.playerNameInput.value = storedName;
         }
+        
+        // Set up orientation change handler
+        this.setupOrientationHandler();
+    }
+    
+    /**
+     * Set up orientation change handler
+     */
+    setupOrientationHandler() {
+        // Handle orientation changes
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                this.adjustInstructionsForOrientation();
+            }, 100);
+        });
+        
+        // Also handle resize events
+        window.addEventListener('resize', () => {
+            this.adjustInstructionsForOrientation();
+        });
+        
+        // Initial adjustment
+        this.adjustInstructionsForOrientation();
+    }
+    
+    /**
+     * Adjust instructions display based on current orientation and viewport
+     */
+    adjustInstructionsForOrientation() {
+        const content = this.elements.instructionsContent;
+        const container = this.elements.instructionsToggle.parentElement;
+        const viewport = window.innerHeight;
+        const isLandscape = window.innerWidth > window.innerHeight;
+        const isSmallScreen = viewport < 600;
+        const isVerySmallScreen = viewport < 500;
+        
+        if (content && content.classList.contains('show')) {
+            let maxHeight;
+            
+            if (isVerySmallScreen) {
+                maxHeight = '20vh';
+            } else if (isSmallScreen && isLandscape) {
+                maxHeight = '25vh';
+            } else if (isLandscape) {
+                maxHeight = '35vh';
+            } else if (isSmallScreen) {
+                maxHeight = '30vh';
+            } else {
+                maxHeight = '40vh';
+            }
+            
+            content.style.maxHeight = maxHeight;
+            
+            // Ensure smooth scrolling is enabled
+            content.style.scrollBehavior = 'smooth';
+        }
+        
+        // Adjust join screen layout for better button visibility
+        const joinScreen = this.screens.join;
+        if (joinScreen && (isVerySmallScreen || (isLandscape && isSmallScreen))) {
+            joinScreen.style.justifyContent = 'flex-start';
+            joinScreen.style.paddingTop = '1rem';
+        } else if (joinScreen) {
+            joinScreen.style.justifyContent = 'center';
+            joinScreen.style.paddingTop = '1rem';
+        }
     }
     
     /**
@@ -505,11 +571,43 @@ class UIManager {
             content.classList.remove('hidden');
             content.classList.add('show');
             toggle.classList.add('active');
+            // Adjust for current orientation
+            this.adjustInstructionsForOrientation();
+            
+            // Ensure the toggle button remains visible after animation
+            setTimeout(() => {
+                this.ensureToggleButtonVisible();
+            }, 350);
         } else {
             // Hide instructions
             content.classList.add('hidden');
             content.classList.remove('show');
             toggle.classList.remove('active');
+            
+            // Ensure button remains accessible after closing
+            setTimeout(() => {
+                this.ensureToggleButtonVisible();
+            }, 100);
+        }
+    }
+    
+    /**
+     * Ensure the instructions toggle button is visible in the viewport
+     */
+    ensureToggleButtonVisible() {
+        const toggle = this.elements.instructionsToggle;
+        if (toggle) {
+            const rect = toggle.getBoundingClientRect();
+            const viewportHeight = window.innerHeight;
+            
+            // If button is not fully visible, scroll it into view
+            if (rect.top < 0 || rect.bottom > viewportHeight) {
+                toggle.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start',
+                    inline: 'nearest'
+                });
+            }
         }
     }
     
