@@ -149,7 +149,8 @@ class UIManager {
     /**
      * Set up UI event listeners
      */
-    setupEventListeners() {        // Join screen        // Function to handle join game action
+    setupEventListeners() {
+        // Function to handle join game action
         const handleJoinGameAction = () => {
             const playerName = this.elements.playerNameInput.value.trim();
             const roomId = this.elements.roomIdInput.value.trim() || null;
@@ -165,7 +166,7 @@ class UIManager {
             }
         };
         
-        // Button click handler
+        // Join screen
         this.elements.createJoinBtn.addEventListener('click', handleJoinGameAction);
         
         // Enter key handlers for input fields
@@ -189,6 +190,7 @@ class UIManager {
             }
         });
         
+        // Waiting room
         this.elements.startGameBtn.addEventListener('click', () => {
             if (this.callbacks.onStartGame) {
                 this.callbacks.onStartGame();
@@ -196,14 +198,14 @@ class UIManager {
             AudioSystem.play('click');
         });
         
-        // Leave room button handler
         this.elements.leaveRoomBtn.addEventListener('click', () => {
             if (this.callbacks.onLeaveRoom) {
                 this.callbacks.onLeaveRoom();
             }
             AudioSystem.play('click');
         });
-          // Game menu
+        
+        // Game menu
         this.elements.resumeBtn.addEventListener('click', () => {
             if (this.callbacks.onResumeGame) {
                 this.callbacks.onResumeGame();
@@ -219,7 +221,8 @@ class UIManager {
             this.hideMenu();
             AudioSystem.play('click');
         });
-          this.elements.quitBtn.addEventListener('click', () => {
+        
+        this.elements.quitBtn.addEventListener('click', () => {
             if (this.callbacks.onQuitGame) {
                 this.callbacks.onQuitGame();
             }
@@ -234,304 +237,19 @@ class UIManager {
             }
             AudioSystem.play('click');
         });
-          this.elements.exitBtn.addEventListener('click', () => {
+        
+        this.elements.exitBtn.addEventListener('click', () => {
             if (this.callbacks.onQuitGame) {
                 this.callbacks.onQuitGame();
             }
-            this.hideMenu(); // Also hide the menu here to ensure it's not visible
+            this.hideMenu();
             AudioSystem.play('click');
-        });
-        
-        // Enter key handling for inputs
-        this.elements.playerNameInput.addEventListener('keyup', (event) => {
-            if (event.key === 'Enter') {
-                this.elements.createJoinBtn.click();
-            }
-        });
-        
-        this.elements.roomIdInput.addEventListener('keyup', (event) => {
-            if (event.key === 'Enter') {
-                this.elements.createJoinBtn.click();
-            }
         });
         
         // Instructions toggle handler
         this.elements.instructionsToggle.addEventListener('click', () => {
             this.toggleInstructions();
             AudioSystem.play('click');
-        });
-
-        // Enter key handlers for input fields
-        this.elements.playerNameInput.addEventListener('keyup', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                // If name is filled but room is not focused, focus on room
-                if (this.elements.playerNameInput.value.trim() && 
-                    document.activeElement !== this.elements.roomIdInput) {
-                    this.elements.roomIdInput.focus();
-                } else {
-                    handleJoinGameAction();
-                }
-            }
-        });
-        
-        this.elements.roomIdInput.addEventListener('keyup', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                handleJoinGameAction();
-            }
-        });
-        
-        this.elements.startGameBtn.addEventListener('click', () => {
-            if (this.callbacks.onStartGame) {
-                this.callbacks.onStartGame();
-            }
-            AudioSystem.play('click');
-        });
-        
-        // Leave room button handler
-        this.elements.leaveRoomBtn.addEventListener('click', () => {
-            if (this.callbacks.onLeaveRoom) {
-                this.callbacks.onLeaveRoom();
-            }
-            AudioSystem.play('click');
-        });
-          // Game menu
-        this.elements.resumeBtn.addEventListener('click', () => {
-            if (this.callbacks.onResumeGame) {
-                this.callbacks.onResumeGame();
-            }
-            this.hideMenu();
-            AudioSystem.play('click');
-        });
-        
-        this.elements.restartBtn.addEventListener('click', () => {
-            if (this.callbacks.onRestartGame) {
-                this.callbacks.onRestartGame();
-            }
-            this.hideMenu();
-            AudioSystem.play('click');
-        });
-          this.elements.quitBtn.addEventListener('click', () => {
-            if (this.callbacks.onQuitGame) {
-                this.callbacks.onQuitGame();
-            }
-            this.hideMenu();
-            AudioSystem.play('click');
-        });
-        
-        // Game over screen
-        this.elements.playAgainBtn.addEventListener('click', () => {
-            if (this.callbacks.onPlayAgain) {
-                this.callbacks.onPlayAgain();
-            }
-            AudioSystem.play('click');
-        });
-          this.elements.exitBtn.addEventListener('click', () => {
-            if (this.callbacks.onQuitGame) {
-                this.callbacks.onQuitGame();
-            }
-            this.hideMenu(); // Also hide the menu here to ensure it's not visible
-            AudioSystem.play('click');
-        });
-        
-        // Enter key handling for inputs
-        this.elements.playerNameInput.addEventListener('keyup', (event) => {
-            if (event.key === 'Enter') {
-                this.elements.createJoinBtn.click();
-            }
-        });
-        
-        this.elements.roomIdInput.addEventListener('keyup', (event) => {
-            if (event.key === 'Enter') {
-                this.elements.createJoinBtn.click();
-            }
-        });
-        
-        // Instructions toggle handler
-        this.elements.instructionsToggle.addEventListener('click', () => {
-            this.toggleInstructions();
-            AudioSystem.play('click');
-        });
-
-        // Enter key handlers for input fields
-        this.elements.playerNameInput.addEventListener('keyup', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                // If name is filled but room is not focused, focus on room
-                if (this.elements.playerNameInput.value.trim() && 
-                    document.activeElement !== this.elements.roomIdInput) {
-                    this.elements.roomIdInput.focus();
-                } else {
-                    handleJoinGameAction();
-                }
-            }
-        });
-        
-        this.elements.roomIdInput.addEventListener('keyup', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                handleJoinGameAction();
-            }
-        });
-        
-        this.elements.startGameBtn.addEventListener('click', () => {
-            if (this.callbacks.onStartGame) {
-                this.callbacks.onStartGame();
-            }
-            AudioSystem.play('click');
-        });
-        
-        // Leave room button handler
-        this.elements.leaveRoomBtn.addEventListener('click', () => {
-            if (this.callbacks.onLeaveRoom) {
-                this.callbacks.onLeaveRoom();
-            }
-            AudioSystem.play('click');
-        });
-          // Game menu
-        this.elements.resumeBtn.addEventListener('click', () => {
-            if (this.callbacks.onResumeGame) {
-                this.callbacks.onResumeGame();
-            }
-            this.hideMenu();
-            AudioSystem.play('click');
-        });
-        
-        this.elements.restartBtn.addEventListener('click', () => {
-            if (this.callbacks.onRestartGame) {
-                this.callbacks.onRestartGame();
-            }
-            this.hideMenu();
-            AudioSystem.play('click');
-        });
-          this.elements.quitBtn.addEventListener('click', () => {
-            if (this.callbacks.onQuitGame) {
-                this.callbacks.onQuitGame();
-            }
-            this.hideMenu();
-            AudioSystem.play('click');
-        });
-        
-        // Game over screen
-        this.elements.playAgainBtn.addEventListener('click', () => {
-            if (this.callbacks.onPlayAgain) {
-                this.callbacks.onPlayAgain();
-            }
-            AudioSystem.play('click');
-        });
-          this.elements.exitBtn.addEventListener('click', () => {
-            if (this.callbacks.onQuitGame) {
-                this.callbacks.onQuitGame();
-            }
-            this.hideMenu(); // Also hide the menu here to ensure it's not visible
-            AudioSystem.play('click');
-        });
-        
-        // Enter key handling for inputs
-        this.elements.playerNameInput.addEventListener('keyup', (event) => {
-            if (event.key === 'Enter') {
-                this.elements.createJoinBtn.click();
-            }
-        });
-        
-        this.elements.roomIdInput.addEventListener('keyup', (event) => {
-            if (event.key === 'Enter') {
-                this.elements.createJoinBtn.click();
-            }
-        });
-        
-        // Instructions toggle handler
-        this.elements.instructionsToggle.addEventListener('click', () => {
-            this.toggleInstructions();
-            AudioSystem.play('click');
-        });
-
-        // Enter key handlers for input fields
-        this.elements.playerNameInput.addEventListener('keyup', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                // If name is filled but room is not focused, focus on room
-                if (this.elements.playerNameInput.value.trim() && 
-                    document.activeElement !== this.elements.roomIdInput) {
-                    this.elements.roomIdInput.focus();
-                } else {
-                    handleJoinGameAction();
-                }
-            }
-        });
-        
-        this.elements.roomIdInput.addEventListener('keyup', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                handleJoinGameAction();
-            }
-        });
-        
-        this.elements.startGameBtn.addEventListener('click', () => {
-            if (this.callbacks.onStartGame) {
-                this.callbacks.onStartGame();
-            }
-            AudioSystem.play('click');
-        });
-        
-        // Leave room button handler
-        this.elements.leaveRoomBtn.addEventListener('click', () => {
-            if (this.callbacks.onLeaveRoom) {
-                this.callbacks.onLeaveRoom();
-            }
-            AudioSystem.play('click');
-        });
-          // Game menu
-        this.elements.resumeBtn.addEventListener('click', () => {
-            if (this.callbacks.onResumeGame) {
-                this.callbacks.onResumeGame();
-            }
-            this.hideMenu();
-            AudioSystem.play('click');
-        });
-        
-        this.elements.restartBtn.addEventListener('click', () => {
-            if (this.callbacks.onRestartGame) {
-                this.callbacks.onRestartGame();
-            }
-            this.hideMenu();
-            AudioSystem.play('click');
-        });
-          this.elements.quitBtn.addEventListener('click', () => {
-            if (this.callbacks.onQuitGame) {
-                this.callbacks.onQuitGame();
-            }
-            this.hideMenu();
-            AudioSystem.play('click');
-        });
-        
-        // Game over screen
-        this.elements.playAgainBtn.addEventListener('click', () => {
-            if (this.callbacks.onPlayAgain) {
-                this.callbacks.onPlayAgain();
-            }
-            AudioSystem.play('click');
-        });
-          this.elements.exitBtn.addEventListener('click', () => {
-            if (this.callbacks.onQuitGame) {
-                this.callbacks.onQuitGame();
-            }
-            this.hideMenu(); // Also hide the menu here to ensure it's not visible
-            AudioSystem.play('click');
-        });
-        
-        // Enter key handling for inputs
-        this.elements.playerNameInput.addEventListener('keyup', (event) => {
-            if (event.key === 'Enter') {
-                this.elements.createJoinBtn.click();
-            }
-        });
-        
-        this.elements.roomIdInput.addEventListener('keyup', (event) => {
-            if (event.key === 'Enter') {
-                this.elements.createJoinBtn.click();
-            }
         });
     }
     
