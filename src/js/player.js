@@ -51,6 +51,7 @@ class Player {
         this.gameStartTime = null; // Will be set when game starts
         this.deathTime = null; // Will be set when player dies
         this.survivalTime = 0; // Time survived in seconds
+        this.useServerTimestamps = false; // Flag to track if using server timestamps
         
         // Performance optimization flags
         this.needsUpdate = false;
@@ -375,8 +376,8 @@ class Player {
         
         if (this.lives <= 0) {
             this.isAlive = false;
-            // Record death time for survival calculation
-            this.deathTime = performance.now();
+            // Record death time for survival calculation using appropriate timestamp format
+            this.deathTime = this.useServerTimestamps ? Date.now() : performance.now();
             this.updateSurvivalTime();
             
             if (this.element) {
@@ -464,20 +465,59 @@ class Player {
     
     /**
      * Start tracking survival time when the game begins
+     * @param {number} gameStartTime - Synchronized game start timestamp (optional)
      */
-    startSurvivalTracking() {
-        this.gameStartTime = performance.now();
+    startSurvivalTracking(gameStartTime = null) {
+        if (gameStartTime) {
+            // Using server timestamp (Date.now() format)
+            this.gameStartTime = gameStartTime;
+            this.useServerTimestamps = true;
+        } else {
+            // Using local timestamp (performance.now() format)
+            this.gameStartTime = performance.now();
+            this.useServerTimestamps = false;
+        }
         this.deathTime = null;
         this.survivalTime = 0;
     }
     
     /**
      * Update survival time calculation
+     * @param {number} endTime - Synchronized end timestamp (optional)
      */
-    updateSurvivalTime() {
+    updateSurvivalTime(endTime = null) {
         if (this.gameStartTime) {
-            const endTime = this.deathTime || performance.now();
-            this.survivalTime = (endTime - this.gameStartTime) / 1000; // Convert to seconds
+            let actualEndTime;
+            
+            if (endTime && this.useServerTimestamps) {
+                // Using synchronized server timestamp
+                actualEndTime = endTime;
+            } else if (this.deathTime) {
+                // Player died, use death time
+                actualEndTime = this.deathTime;
+            } else if (this.useServerTimestamps && endTime) {
+                // Game ended with server timestamp
+                actualEndTime = endTime;
+            } else {
+                // Fall back to local timestamp
+                actualEndTime = this.useServerTimestamps ? Date.now() : performance.now();
+            }
+            
+            const timeDiff = actualEndTime - this.gameStartTime;
+            this.survivalTime = Math.max(0, timeDiff / 1000); // Convert to seconds, ensure non-negative
+            
+            // Debug logging for invalid survival times
+            if (this.survivalTime > 7200 || this.survivalTime < 0) { // More than 2 hours or negative
+                console.warn(`Invalid survival time for player ${this.name}: ${this.survivalTime}s`, {
+                    gameStartTime: this.gameStartTime,
+                    actualEndTime: actualEndTime,
+                    timeDiff: timeDiff,
+                    useServerTimestamps: this.useServerTimestamps,
+                    endTime: endTime,
+                    deathTime: this.deathTime
+                });
+                this.survivalTime = 0; // Reset to 0 if invalid
+            }
         }
     }
     
@@ -486,9 +526,17 @@ class Player {
      * @returns {string} Formatted survival time (e.g., "2:35")
      */
     getFormattedSurvivalTime() {
-        const totalSeconds = Math.floor(this.survivalTime);
+        // Ensure survival time is valid and non-negative
+        const validSurvivalTime = Math.max(0, this.survivalTime || 0);
+        const totalSeconds = Math.floor(validSurvivalTime);
         const minutes = Math.floor(totalSeconds / 60);
         const seconds = totalSeconds % 60;
+        
+        // Handle edge cases for very large numbers
+        if (totalSeconds >= 3600) { // More than 1 hour, probably an error
+            return "0:00";
+        }
+        
         return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     }
 }

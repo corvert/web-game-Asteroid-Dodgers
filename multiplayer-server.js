@@ -259,23 +259,63 @@ io.on('connection', (socket) => {
         // Start the game
         room.gameInProgress = true;
         room.gameStarted = true;
+        room.gameStartTime = Date.now(); // Store synchronized game start time
           // Notify all players in the room
         io.to(roomId).emit('game:start', {
-            players: room.players
+            players: room.players,
+            startTime: room.gameStartTime
         });
     });
     
     // Game action handler (pause, resume, quit)
     socket.on('game:action', (data) => {
-        const { action } = data;
+        const { action, autoStart } = data;
         const roomId = findPlayerRoom(socket.id);
         if (!roomId) return;
         
         const room = rooms.get(roomId);
-        if (!room || !room.gameInProgress) return;
+        if (!room) return;
+        
+        // Special handling for restart action - allow it even when game is not in progress
+        if (action === 'restart') {
+            // Only host can restart
+            if (room.host === socket.id) {
+                room.gameInProgress = false;
+                room.gameStarted = false;
+                // Update game start time for restart
+                room.gameStartTime = Date.now();
+                // Find player data to include name
+                const restartingPlayer = room.players.find(p => p.id === socket.id);
+                io.to(roomId).emit('game:restart', {
+                    playerId: socket.id,
+                    playerName: restartingPlayer ? restartingPlayer.name : 'Unknown player',
+                    startTime: room.gameStartTime,
+                    autoStart: autoStart || false
+                });
+            }
+            return;
+        }
+        
+        // For other actions, require game to be in progress
+        if (!room.gameInProgress) return;
         
         // Process action
         switch (action) {
+            case 'end':
+                // Handle natural game end (time limit reached or all players dead)
+                // Only host can trigger natural game end
+                if (room.host !== socket.id) {
+                    return;
+                }
+                room.gameInProgress = false;
+                room.gameStarted = false;
+                const gameEndTime = Date.now(); // Synchronized timestamp
+                io.to(roomId).emit('game:end', { 
+                    reason: 'time_limit',
+                    timestamp: gameEndTime,
+                    gameStartTime: room.gameStartTime
+                });
+                break;
             case 'pause':
                 io.to(roomId).emit('game:pause', { playerId: socket.id });
                 break;
@@ -290,10 +330,12 @@ io.on('connection', (socket) => {
                 if (room.players.length <= 2) {  // This means only one player will be left after this player quits
                     room.gameInProgress = false;
                     room.gameStarted = false;
+                    const gameEndTime = Date.now(); // Synchronized timestamp
                     io.to(roomId).emit('game:end', { 
                         playerId: socket.id, 
                         reason: 'quit',
-                        playerName: quittingPlayer ? quittingPlayer.name : 'Unknown player'
+                        playerName: quittingPlayer ? quittingPlayer.name : 'Unknown player',
+                        timestamp: gameEndTime
                     });
                 } else {
                     // Enough players to continue, just notify about the player who quit
@@ -303,24 +345,13 @@ io.on('connection', (socket) => {
                     });
                     
                     // Send a direct message to the quitting player
+                    const gameEndTime = Date.now(); // Synchronized timestamp
                     socket.emit('game:end', { 
                         playerId: socket.id, 
                         reason: 'quit',
                         playerName: quittingPlayer ? quittingPlayer.name : 'Unknown player',
-                        localOnly: true
-                    });
-                }
-                break;            
-                case 'restart':
-                // Only host can restart
-                if (room.host === socket.id) {
-                    room.gameInProgress = false;
-                    room.gameStarted = false;
-                    // Find player data to include name
-                    const restartingPlayer = room.players.find(p => p.id === socket.id);
-                    io.to(roomId).emit('game:restart', {
-                        playerId: socket.id,
-                        playerName: restartingPlayer ? restartingPlayer.name : 'Unknown player'
+                        localOnly: true,
+                        timestamp: gameEndTime
                     });
                 }
                 break;
@@ -431,10 +462,12 @@ io.on('connection', (socket) => {
                         // Not enough players left, end the game
                         room.gameInProgress = false;
                         room.gameStarted = false;
+                        const gameEndTime = Date.now(); // Synchronized timestamp
                         socket.to(roomId).emit('game:end', { 
                             playerId: socket.id, 
                             reason: 'quit',
-                            playerName: playerName
+                            playerName: playerName,
+                            timestamp: gameEndTime
                         });
                     }
                 }

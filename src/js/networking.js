@@ -391,14 +391,15 @@ class NetworkManager {
         this.socket.emit('game:start');
     }
       /**
-     * Send game action (pause/resume/quit/restart)
-     * @param {string} action - Action type ('pause', 'resume', 'quit', 'restart')
+     * Send game action (pause/resume/quit/restart/end)
+     * @param {string} action - Action type ('pause', 'resume', 'quit', 'restart', 'end')
+     * @param {Object} additionalData - Optional additional data to send with the action
      */
-    sendGameAction(action) {
+    sendGameAction(action, additionalData = {}) {
         if (!this.isConnected || !this.roomId) return;
         
-        console.log(`Sending game action to server: ${action}`);
-        this.socket.emit('game:action', { action });
+        console.log(`Sending game action to server: ${action}`, additionalData);
+        this.socket.emit('game:action', { action, ...additionalData });
     }
     
     /**

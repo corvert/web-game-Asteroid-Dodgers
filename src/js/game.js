@@ -41,7 +41,9 @@ class Game {
             onPlayerHit: null,
             onTimeUpdate: null,
             onPause: null,
-            onResume: null
+            onResume: null,
+            onGameTimeEnd: null,
+            onAllPlayersDead: null
         };
         
         // DOM elements
@@ -255,8 +257,9 @@ class Game {
     
     /**
      * Start the game with connected players
+     * @param {number} synchronizedStartTime - Synchronized game start timestamp (optional)
      */
-    startGame() {
+    startGame(synchronizedStartTime = null) {
         if (this.isRunning) return;
         
         this.isRunning = true;
@@ -275,7 +278,7 @@ class Game {
             countdown--;
             if (countdown <= 0) {
                 clearInterval(countdownInterval);
-                this.startGameLoop();
+                this.startGameLoop(synchronizedStartTime);
                 AudioSystem.play('start');
             }
         }, 1000);
@@ -283,16 +286,17 @@ class Game {
     
     /**
      * Start the main game loop
+     * @param {number} gameStartTime - Synchronized game start timestamp (optional)
      */
-    startGameLoop() {
+    startGameLoop(gameStartTime = null) {
         // Reset timing variables
         this.lastFrameTime = performance.now();
         this.lastAsteroidSpawn = this.lastFrameTime;
         this.lastPowerupSpawn = this.lastFrameTime;
         
-        // Start survival time tracking for all players
+        // Start survival time tracking for all players with synchronized timestamp
         for (const player of this.players.values()) {
-            player.startSurvivalTracking();
+            player.startSurvivalTracking(gameStartTime);
         }
         
         // Start animation loop
@@ -327,7 +331,13 @@ class Game {
             
             // Check game over condition
             if (this.gameTime >= this.settings.gameDuration) {
-                this.endGame();
+                // In multiplayer, let the server handle the game end
+                if (this.callbacks.onGameTimeEnd) {
+                    this.callbacks.onGameTimeEnd();
+                } else {
+                    // For single player or local games
+                    this.endGame();
+                }
             } else {
                 // Update UI
                 if (this.callbacks.onTimeUpdate) {
@@ -645,8 +655,14 @@ class Game {
                     if (isDead) {
                         // Check game over condition - only end if ALL players are dead
                         const alivePlayers = Array.from(this.players.values()).filter(p => p.isAlive);
-                        if (alivePlayers.length <=1) {
-                            this.endGame();
+                        if (alivePlayers.length <= 1) {
+                            // In multiplayer, let the server handle the game end  
+                            if (this.callbacks.onAllPlayersDead) {
+                                this.callbacks.onAllPlayersDead();
+                            } else {
+                                // For single player or local games
+                                this.endGame();
+                            }
                         }
                     }
                     
@@ -725,8 +741,9 @@ class Game {
     
     /**
      * End the game and determine winner
+     * @param {Object} gameEndData - Optional game end data with synchronized timestamps
      */
-    endGame() {
+    endGame(gameEndData = null) {
         if (!this.isRunning) return;
         
         this.isRunning = false;
@@ -740,10 +757,12 @@ class Game {
         // Play game over sound
         AudioSystem.play('gameover');
         
-        // Update survival time for all players who are still alive
+        // Update survival time for all players using synchronized timestamp if available
+        const endTime = gameEndData && gameEndData.timestamp ? gameEndData.timestamp : performance.now();
+        
         for (const player of this.players.values()) {
             if (player.isAlive) {
-                player.updateSurvivalTime();
+                player.updateSurvivalTime(endTime);
             }
         }
         

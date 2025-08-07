@@ -63,7 +63,10 @@ class AsteroidDodgers {    constructor() {
             onPlayerHit: this.handlePlayerHit.bind(this),
             onTimeUpdate: this.handleTimeUpdate.bind(this),
             onPause: this.handleGamePause.bind(this),
-            onResume: this.handleGameResume.bind(this)        });
+            onResume: this.handleGameResume.bind(this),
+            onGameTimeEnd: this.handleGameTimeEnd.bind(this),
+            onAllPlayersDead: this.handleAllPlayersDead.bind(this)
+        });
         
         // Register network callbacks
         this.network.registerCallbacks({
@@ -297,10 +300,10 @@ class AsteroidDodgers {    constructor() {
             // Network mode: Go back to waiting room
             if (this.network.isHost) {
                 // Only host can send the restart action
-                console.log('Host requesting game restart');
+                console.log('Host requesting game restart with auto-start');
                 // Show loading status while waiting for server response
                 this.ui.showLoading('Restarting game...');
-                this.network.sendGameAction('restart');
+                this.network.sendGameAction('restart', { autoStart: true });
             } else {
                 // Don't show the join screen for non-host players, keep them in the game
                 // Instead, show a notification that only the host can restart
@@ -502,7 +505,7 @@ class AsteroidDodgers {    constructor() {
     
     /**
      * Handle game start event from network
-     * @param {Object} data - Game start data
+     * @param {Object} data - Game start data with players and start time
      */
     handleGameStartEvent(data) {
         // Clear any existing game
@@ -529,18 +532,19 @@ class AsteroidDodgers {    constructor() {
             this.network.startStateUpdates(() => localPlayer.getNetworkState());
         }
         
-        // Start the game
-        this.game.startGame();
+        // Start the game with synchronized start time
+        this.game.startGame(data.startTime);
     }
     
     /**
      * Handle game end event from network
-     * @param {Object} data - Game end data
-     */    handleGameEndEvent(data) {
+     * @param {Object} data - Game end data with synchronized timestamp
+     */    
+    handleGameEndEvent(data) {
         // If localOnly flag is set, this is only for the current player who quit
         // and shouldn't affect other players' games
         if (!data.localOnly && this.game.isRunning) {
-            this.game.endGame();
+            this.game.endGame(data);
             
             // If game ended because a player quit, show notification
             if (data && data.reason === 'quit' && data.playerName) {
@@ -650,27 +654,45 @@ class AsteroidDodgers {    constructor() {
         // Explicitly hide the game over screen first
         this.ui.hideAllScreens();
         
-        // Show waiting room
-        this.ui.showWaitingRoom(this.network.roomId, this.network.isHost);
-        
-        // Update players list
-        const players = Array.from(this.network.players.values());
-        this.ui.updatePlayersList(players, this.network.playerId);
-        
         // Get player name for notification
         let playerName = 'The host';
         if (data && data.playerName) {
             playerName = data.playerName;
         }
         
-        // Show notification for restart
-        this.ui.showGameNotification(`Game restarted by ${playerName}`, 5000);
-        
-        // Show connection status with different messages for host and players
-        if (this.network.isHost) {
-            this.ui.showConnectionStatus('Game restarted. You can start a new game when ready.', 'success');
+        if (data && data.autoStart) {
+            // Auto-start the game immediately
+            console.log('Auto-starting game after restart');
+            
+            // Show loading message briefly
+            this.ui.showLoading('Starting new game...');
+            
+            // Start the game after a short delay to allow UI updates
+            setTimeout(() => {
+                if (this.network.isHost) {
+                    this.network.startGame();
+                }
+            }, 1000);
+            
+            // Show notification for auto-restart
+            this.ui.showGameNotification(`New game started by ${playerName}`, 3000);
         } else {
-            this.ui.showConnectionStatus('Game restarted by the host. Waiting for the host to start a new game.', 'info');
+            // Show waiting room for manual restart
+            this.ui.showWaitingRoom(this.network.roomId, this.network.isHost);
+            
+            // Update players list
+            const players = Array.from(this.network.players.values());
+            this.ui.updatePlayersList(players, this.network.playerId);
+            
+            // Show notification for restart
+            this.ui.showGameNotification(`Game restarted by ${playerName}`, 5000);
+            
+            // Show connection status with different messages for host and players
+            if (this.network.isHost) {
+                this.ui.showConnectionStatus('Game restarted. You can start a new game when ready.', 'success');
+            } else {
+                this.ui.showConnectionStatus('Game restarted by the host. Waiting for the host to start a new game.', 'info');
+            }
         }
     }
     
@@ -742,6 +764,36 @@ class AsteroidDodgers {    constructor() {
         
         // Sound effect for host change
         AudioSystem.play('notification');
+    }
+    
+    /**
+     * Handle game time limit reached
+     */
+    handleGameTimeEnd() {
+        if (!this.debugLocalGame && this.network.isConnected) {
+            // Only host should trigger synchronized game end
+            if (this.network.isHost) {
+                this.network.sendGameAction('end');
+            }
+        } else {
+            // For local games, just end immediately
+            this.game.endGame();
+        }
+    }
+    
+    /**
+     * Handle all players dead scenario
+     */
+    handleAllPlayersDead() {
+        if (!this.debugLocalGame && this.network.isConnected) {
+            // Only host should trigger synchronized game end
+            if (this.network.isHost) {
+                this.network.sendGameAction('end');
+            }
+        } else {
+            // For local games, just end immediately
+            this.game.endGame();
+        }
     }
     
     /**
