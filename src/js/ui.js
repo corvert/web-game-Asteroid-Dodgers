@@ -559,6 +559,7 @@ class UIManager {
         this.elements.playerNameInput.focus();
     }
     
+    
     /**
      * Toggle the instructions panel
      */
