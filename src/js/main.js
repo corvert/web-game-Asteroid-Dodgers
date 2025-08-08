@@ -37,6 +37,9 @@ class AsteroidDodgers {    constructor() {
         // Initialize game with game area element
         this.game.init(this.ui.elements.gameArea);
         
+        // Set network manager in game for entity synchronization
+        this.game.setNetworkManager(this.network);
+        
         // Initialize network connection
         try {
             await this.network.connectToServer();
@@ -83,7 +86,10 @@ class AsteroidDodgers {    constructor() {
             onPlayerUpdate: this.handlePlayerUpdate.bind(this),
             onPause: this.handleGamePause.bind(this),
             onResume: this.handleGameResume.bind(this),
-            onRoomClosed: this.handleRoomClosed.bind(this)
+            onRoomClosed: this.handleRoomClosed.bind(this),
+            onEntitySpawn: this.handleEntitySpawn.bind(this),
+            onEntityCollision: this.handleEntityCollision.bind(this),
+            onEntityExpire: this.handleEntityExpire.bind(this)
         });
         
         // Connect to multiplayer server
@@ -794,6 +800,40 @@ class AsteroidDodgers {    constructor() {
             // For local games, just end immediately
             this.game.endGame();
         }
+    }
+    
+    /**
+     * Handle entity spawn from server
+     * @param {string} entityType - Type of entity ('asteroid' or 'powerup')
+     * @param {Object} entityData - Entity data from server
+     */
+    handleEntitySpawn(entityType, entityData) {
+        if (!this.game) return;
+        
+        this.game.spawnNetworkEntity(entityType, entityData);
+    }
+    
+    /**
+     * Handle entity collision from server
+     * @param {string} entityType - Type of entity ('asteroid' or 'powerup')
+     * @param {number} entityId - ID of the entity
+     * @param {string} playerId - ID of the player who collided
+     */
+    handleEntityCollision(entityType, entityId, playerId) {
+        if (!this.game) return;
+        
+        this.game.handleNetworkCollision(entityType, entityId, playerId);
+    }
+    
+    /**
+     * Handle entity expiration from server
+     * @param {string} entityType - Type of entity ('asteroid' or 'powerup')
+     * @param {number} entityId - ID of the entity
+     */
+    handleEntityExpire(entityType, entityId) {
+        if (!this.game) return;
+        
+        this.game.removeNetworkEntity(entityType, entityId);
     }
     
     /**

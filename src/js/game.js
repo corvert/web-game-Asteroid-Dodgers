@@ -15,6 +15,12 @@ class Game {
         this.localPlayerId = null;
         this.asteroids = [];
         this.powerups = [];
+        this.networkAsteroids = new Map(); // Map network asteroid IDs to local objects
+        this.networkPowerups = new Map(); // Map network powerup IDs to local objects
+        
+        // Network reference
+        this.network = null;
+        this.isNetworkGame = false;
         
         // Game settings
         this.settings = {
@@ -87,6 +93,15 @@ class Game {
         this.setupEventListeners();
         
         console.log('Game initialized with bounds:', this.bounds);
+    }
+    
+    /**
+     * Set network manager for multiplayer
+     * @param {NetworkManager} network - Network manager instance
+     */
+    setNetworkManager(network) {
+        this.network = network;
+        this.isNetworkGame = network !== null;
     }
     
     /**
@@ -391,6 +406,11 @@ class Game {
      * @param {number} now - Current timestamp
      */
     spawnEntities(now) {
+        // In network games, only the server spawns entities
+        if (this.isNetworkGame) {
+            return;
+        }
+        
         // Spawn asteroids
         if (now - this.lastAsteroidSpawn > this.settings.asteroidSpawnRate) {
             if (this.asteroids.length < this.settings.maxAsteroids) {
@@ -647,9 +667,19 @@ class Game {
                         this.callbacks.onPlayerHit(player.id, isDead);
                     }
                     
-                    // Remove asteroid
-                    asteroid.element.remove();
-                    this.asteroids.splice(i, 1);
+                    // Report collision to network if it's a network entity
+                    if (this.isNetworkGame && asteroid.networkId !== undefined) {
+                        this.network.reportEntityCollision('asteroid', asteroid.networkId, player.id);
+                    } else {
+                        // Remove asteroid locally for local games
+                        asteroid.element.remove();
+                        this.asteroids.splice(i, 1);
+                        
+                        // Remove from network tracking if applicable
+                        if (asteroid.networkId !== undefined) {
+                            this.networkAsteroids.delete(asteroid.networkId);
+                        }
+                    }
                     
                     // Check if player died
                     if (isDead) {
@@ -685,9 +715,19 @@ class Game {
                     // Play powerup sound
                     AudioSystem.play('powerup');
                     
-                    // Remove powerup
-                    powerup.element.remove();
-                    this.powerups.splice(i, 1);
+                    // Report collision to network if it's a network entity
+                    if (this.isNetworkGame && powerup.networkId !== undefined) {
+                        this.network.reportEntityCollision('powerup', powerup.networkId, player.id);
+                    } else {
+                        // Remove powerup locally for local games
+                        powerup.element.remove();
+                        this.powerups.splice(i, 1);
+                        
+                        // Remove from network tracking if applicable
+                        if (powerup.networkId !== undefined) {
+                            this.networkPowerups.delete(powerup.networkId);
+                        }
+                    }
                     
                     break; // Only process one powerup per player per frame
                 }
@@ -833,6 +873,151 @@ class Game {
         this.isPaused = false;
         this.gameTime = 0;
         this.localPlayerId = null;
+    }
+    
+    /**
+     * Spawn an entity from network data
+     * @param {string} entityType - Type of entity ('asteroid' or 'powerup')
+     * @param {Object} data - Entity data from server
+     */
+    spawnNetworkEntity(entityType, data) {
+        if (entityType === 'asteroid') {
+            this.spawnNetworkAsteroid(data);
+        } else if (entityType === 'powerup') {
+            this.spawnNetworkPowerup(data);
+        }
+    }
+    
+    /**
+     * Spawn an asteroid from network data
+     * @param {Object} data - Asteroid data from server
+     */
+    spawnNetworkAsteroid(data) {
+        // Create asteroid element
+        const element = document.createElement('div');
+        element.className = 'asteroid';
+        element.style.width = `${data.size}px`;
+        element.style.height = `${data.size}px`;
+        
+        // Add slight irregular shape
+        const bumpiness = Math.random() * 15 + 5;
+        element.style.borderRadius = `${50 - bumpiness}%`;
+        
+        // Add to DOM
+        this.gameArea.appendChild(element);
+        
+        // Create local asteroid object
+        const asteroid = {
+            element,
+            x: data.x,
+            y: data.y,
+            velocityX: data.velocityX,
+            velocityY: data.velocityY,
+            size: data.size,
+            rotation: 0,
+            rotationSpeed: data.rotationSpeed,
+            networkId: data.id // Store network ID for collision reporting
+        };
+        
+        this.asteroids.push(asteroid);
+        this.networkAsteroids.set(data.id, asteroid);
+    }
+    
+    /**
+     * Spawn a powerup from network data
+     * @param {Object} data - Powerup data from server
+     */
+    spawnNetworkPowerup(data) {
+        // Create powerup element
+        const element = document.createElement('div');
+        element.className = 'powerup';
+        element.style.width = '30px';
+        element.style.height = '30px';
+        element.style.borderRadius = '50%';
+        
+        // Style based on type
+        switch (data.type) {
+            case 'shield':
+                element.style.backgroundColor = 'rgba(64, 224, 208, 0.7)';
+                element.style.boxShadow = '0 0 10px #40E0D0';
+                break;
+            case 'speed':
+                element.style.backgroundColor = 'rgba(255, 215, 0, 0.7)';
+                element.style.boxShadow = '0 0 10px #FFD700';
+                break;
+            case 'score':
+                element.style.backgroundColor = 'rgba(147, 112, 219, 0.7)';
+                element.style.boxShadow = '0 0 10px #9370DB';
+                break;
+        }
+        
+        // Add pulse animation
+        element.style.animation = 'pulse 1.5s infinite';
+        
+        // Add to DOM
+        this.gameArea.appendChild(element);
+        
+        // Create local powerup object
+        const powerup = {
+            element,
+            x: data.x,
+            y: data.y,
+            type: data.type,
+            createdAt: performance.now(),
+            networkId: data.id // Store network ID for collision reporting
+        };
+        
+        this.powerups.push(powerup);
+        this.networkPowerups.set(data.id, powerup);
+    }
+    
+    /**
+     * Handle collision event from network
+     * @param {string} entityType - Type of entity ('asteroid' or 'powerup')
+     * @param {number} entityId - Network ID of entity
+     * @param {string} playerId - ID of player who collided
+     */
+    handleNetworkCollision(entityType, entityId, playerId) {
+        if (entityType === 'asteroid') {
+            const asteroid = this.networkAsteroids.get(entityId);
+            if (asteroid) {
+                // Remove from DOM
+                if (asteroid.element.parentNode) {
+                    asteroid.element.remove();
+                }
+                
+                // Remove from arrays
+                const index = this.asteroids.indexOf(asteroid);
+                if (index !== -1) {
+                    this.asteroids.splice(index, 1);
+                }
+                this.networkAsteroids.delete(entityId);
+            }
+        } else if (entityType === 'powerup') {
+            const powerup = this.networkPowerups.get(entityId);
+            if (powerup) {
+                // Remove from DOM
+                if (powerup.element.parentNode) {
+                    powerup.element.remove();
+                }
+                
+                // Remove from arrays
+                const index = this.powerups.indexOf(powerup);
+                if (index !== -1) {
+                    this.powerups.splice(index, 1);
+                }
+                this.networkPowerups.delete(entityId);
+            }
+        }
+    }
+    
+    /**
+     * Remove a network entity
+     * @param {string} entityType - Type of entity ('asteroid' or 'powerup')
+     * @param {number} entityId - Network ID of entity
+     */
+    removeNetworkEntity(entityType, entityId) {
+        this.handleNetworkCollision(entityType, entityId, null);
     }
     
     /**

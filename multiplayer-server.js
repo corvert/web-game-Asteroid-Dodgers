@@ -260,6 +260,17 @@ io.on('connection', (socket) => {
         room.gameInProgress = true;
         room.gameStarted = true;
         room.gameStartTime = Date.now(); // Store synchronized game start time
+        
+        // Initialize game entities for the room
+        room.asteroids = [];
+        room.powerups = [];
+        room.nextAsteroidId = 0;
+        room.nextPowerupId = 0;
+        room.lastAsteroidSpawn = room.gameStartTime;
+        room.lastPowerupSpawn = room.gameStartTime;
+        
+        // Start entity spawning loop for this room
+        startEntitySpawning(roomId);
           // Notify all players in the room
         io.to(roomId).emit('game:start', {
             players: room.players,
@@ -282,6 +293,13 @@ io.on('connection', (socket) => {
             if (room.host === socket.id) {
                 room.gameInProgress = false;
                 room.gameStarted = false;
+                
+                // Clean up entity spawning
+                if (room.spawnInterval) {
+                    clearInterval(room.spawnInterval);
+                    room.spawnInterval = null;
+                }
+                
                 // Update game start time for restart
                 room.gameStartTime = Date.now();
                 // Find player data to include name
@@ -309,6 +327,13 @@ io.on('connection', (socket) => {
                 }
                 room.gameInProgress = false;
                 room.gameStarted = false;
+                
+                // Clean up entity spawning
+                if (room.spawnInterval) {
+                    clearInterval(room.spawnInterval);
+                    room.spawnInterval = null;
+                }
+                
                 const gameEndTime = Date.now(); // Synchronized timestamp
                 io.to(roomId).emit('game:end', { 
                     reason: 'time_limit',
@@ -330,6 +355,13 @@ io.on('connection', (socket) => {
                 if (room.players.length <= 2) {  // This means only one player will be left after this player quits
                     room.gameInProgress = false;
                     room.gameStarted = false;
+                    
+                    // Clean up entity spawning
+                    if (room.spawnInterval) {
+                        clearInterval(room.spawnInterval);
+                        room.spawnInterval = null;
+                    }
+                    
                     const gameEndTime = Date.now(); // Synchronized timestamp
                     io.to(roomId).emit('game:end', { 
                         playerId: socket.id, 
@@ -368,6 +400,29 @@ io.on('connection', (socket) => {
         
         // Broadcast player state to other players in the room
         socket.to(roomId).emit('player:update', playerState);
+    });
+    
+    // Entity collision handler
+    socket.on('entity:collision', (data) => {
+        const roomId = findPlayerRoom(socket.id);
+        if (!roomId) return;
+        
+        const room = rooms.get(roomId);
+        if (!room || !room.gameInProgress) return;
+        
+        const { entityType, entityId, playerId } = data;
+        
+        if (entityType === 'asteroid') {
+            // Remove asteroid from room state
+            room.asteroids = room.asteroids.filter(a => a.id !== entityId);
+            // Broadcast collision to all players
+            io.to(roomId).emit('entity:collision', { entityType, entityId, playerId });
+        } else if (entityType === 'powerup') {
+            // Remove powerup from room state
+            room.powerups = room.powerups.filter(p => p.id !== entityId);
+            // Broadcast collision to all players
+            io.to(roomId).emit('entity:collision', { entityType, entityId, playerId });
+        }
     });
     
     // Handle player disconnection
@@ -462,6 +517,13 @@ io.on('connection', (socket) => {
                         // Not enough players left, end the game
                         room.gameInProgress = false;
                         room.gameStarted = false;
+                        
+                        // Clean up entity spawning
+                        if (room.spawnInterval) {
+                            clearInterval(room.spawnInterval);
+                            room.spawnInterval = null;
+                        }
+                        
                         const gameEndTime = Date.now(); // Synchronized timestamp
                         socket.to(roomId).emit('game:end', { 
                             playerId: socket.id, 
@@ -542,6 +604,160 @@ function findPlayerRoom(playerId) {
         }
     }
     return null;
+}
+
+/**
+ * Start entity spawning for a room
+ * @param {string} roomId - Room ID
+ */
+function startEntitySpawning(roomId) {
+    const room = rooms.get(roomId);
+    if (!room) return;
+    
+    // Game settings (matching client-side)
+    const settings = {
+        maxAsteroids: 15,
+        asteroidSpawnRate: 2000, // ms
+        powerupSpawnRate: 1000, // ms
+        gameBounds: { width: 1000, height: 700 } // Default bounds
+    };
+    
+    // Create spawning interval
+    room.spawnInterval = setInterval(() => {
+        if (!room.gameInProgress || !rooms.has(roomId)) {
+            clearInterval(room.spawnInterval);
+            return;
+        }
+        
+        const now = Date.now();
+        
+        // Spawn asteroids
+        if (now - room.lastAsteroidSpawn > settings.asteroidSpawnRate) {
+            if (room.asteroids.length < settings.maxAsteroids) {
+                spawnAsteroid(roomId, settings.gameBounds);
+            }
+            room.lastAsteroidSpawn = now;
+        }
+        
+        // Spawn powerups
+        if (now - room.lastPowerupSpawn > settings.powerupSpawnRate) {
+            if (Math.random() < 0.5) { // 50% chance
+                spawnPowerup(roomId, settings.gameBounds);
+            }
+            room.lastPowerupSpawn = now;
+        }
+    }, 500); // Check every 500ms
+}
+
+/**
+ * Spawn an asteroid for a room
+ * @param {string} roomId - Room ID
+ * @param {Object} bounds - Game bounds
+ */
+function spawnAsteroid(roomId, bounds) {
+    const room = rooms.get(roomId);
+    if (!room) return;
+    
+    // Calculate spawn position (off-screen)
+    const side = Math.floor(Math.random() * 4);
+    let x, y;
+    
+    switch (side) {
+        case 0: // Top
+            x = Math.random() * bounds.width;
+            y = -50;
+            break;
+        case 1: // Right
+            x = bounds.width + 50;
+            y = Math.random() * bounds.height;
+            break;
+        case 2: // Bottom
+            x = Math.random() * bounds.width;
+            y = bounds.height + 50;
+            break;
+        case 3: // Left
+            x = -50;
+            y = Math.random() * bounds.height;
+            break;
+    }
+    
+    // Calculate velocity towards center
+    const centerX = bounds.width / 2;
+    const centerY = bounds.height / 2;
+    const angle = Math.atan2(centerY - y, centerX - x);
+    const speed = 0.5 + Math.random() * 1.5;
+    const velocityX = Math.cos(angle) * speed;
+    const velocityY = Math.sin(angle) * speed;
+    
+    // Random size and rotation
+    const size = 20 + Math.random() * 40;
+    const rotationSpeed = (Math.random() - 0.5) * 2;
+    
+    const asteroid = {
+        id: room.nextAsteroidId++,
+        x,
+        y,
+        velocityX,
+        velocityY,
+        size,
+        rotationSpeed,
+        spawnTime: Date.now()
+    };
+    
+    room.asteroids.push(asteroid);
+    
+    // Broadcast to all players in room
+    io.to(roomId).emit('entity:spawn', {
+        type: 'asteroid',
+        data: asteroid
+    });
+}
+
+/**
+ * Spawn a powerup for a room
+ * @param {string} roomId - Room ID
+ * @param {Object} bounds - Game bounds
+ */
+function spawnPowerup(roomId, bounds) {
+    const room = rooms.get(roomId);
+    if (!room) return;
+    
+    // Random position within game area
+    const margin = 50;
+    const x = margin + Math.random() * (bounds.width - margin * 2);
+    const y = margin + Math.random() * (bounds.height - margin * 2);
+    
+    // Random type
+    const types = ['shield', 'speed', 'score'];
+    const type = types[Math.floor(Math.random() * types.length)];
+    
+    const powerup = {
+        id: room.nextPowerupId++,
+        x,
+        y,
+        type,
+        spawnTime: Date.now()
+    };
+    
+    room.powerups.push(powerup);
+    
+    // Broadcast to all players in room
+    io.to(roomId).emit('entity:spawn', {
+        type: 'powerup',
+        data: powerup
+    });
+    
+    // Auto-expire after 10 seconds
+    setTimeout(() => {
+        const room = rooms.get(roomId);
+        if (room) {
+            room.powerups = room.powerups.filter(p => p.id !== powerup.id);
+            io.to(roomId).emit('entity:expire', {
+                type: 'powerup',
+                id: powerup.id
+            });
+        }
+    }, 10000);
 }
 
 // Clean up old rooms periodically (every 5 minutes)

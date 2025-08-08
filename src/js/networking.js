@@ -25,7 +25,10 @@ class NetworkManager {
             onPlayerUpdate: null,
             onPause: null,
             onResume: null,
-            onRoomClosed: null
+            onRoomClosed: null,
+            onEntitySpawn: null,
+            onEntityCollision: null,
+            onEntityExpire: null
         };
         
         // Network state
@@ -318,6 +321,28 @@ class NetworkManager {
                 this.callbacks.onPlayerUpdate(playerState);
             }
         });
+        
+        // Entity synchronization events
+        this.socket.on('entity:spawn', (data) => {
+            console.log('Entity spawn event received:', data);
+            if (this.callbacks.onEntitySpawn) {
+                this.callbacks.onEntitySpawn(data.type, data.data);
+            }
+        });
+        
+        this.socket.on('entity:collision', (data) => {
+            console.log('Entity collision event received:', data);
+            if (this.callbacks.onEntityCollision) {
+                this.callbacks.onEntityCollision(data.entityType, data.entityId, data.playerId);
+            }
+        });
+        
+        this.socket.on('entity:expire', (data) => {
+            console.log('Entity expire event received:', data);
+            if (this.callbacks.onEntityExpire) {
+                this.callbacks.onEntityExpire(data.type, data.id);
+            }
+        });
     }
     
     /**
@@ -419,6 +444,22 @@ class NetworkManager {
                 this.socket.emit('player:update', playerState);
             }
         }, this.updateRate);
+    }
+    
+    /**
+     * Report an entity collision to the server
+     * @param {string} entityType - Type of entity ('asteroid' or 'powerup')
+     * @param {number} entityId - ID of the entity
+     * @param {string} playerId - ID of the player who collided
+     */
+    reportEntityCollision(entityType, entityId, playerId) {
+        if (!this.isConnected) return;
+        
+        this.socket.emit('entity:collision', {
+            entityType,
+            entityId,
+            playerId
+        });
     }
     
     /**
