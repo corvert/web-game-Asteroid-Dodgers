@@ -12,222 +12,227 @@
     />
   </head>
   <body>
-    <div id="game-container">
-      <!-- Loading Screen -->
-      <div id="loading-screen" class="screen">
-        <h1>Asteroid Dodgers</h1>
-        <div class="loading-animation">
-          <div class="spinner"></div>
+    <div class="main-container">
+      <h1 class="main-title">Asteroid Dodgers</h1>
+      <div id="game-container">
+        <!-- Loading Screen -->
+        <div id="loading-screen" class="screen">
+          <div class="loading-animation">
+            <div class="spinner"></div>
+          </div>
+          <p>Loading game assets...</p>
         </div>
-        <p>Loading game assets...</p>
-      </div>
 
-      <!-- Join Screen -->
-      <div id="join-screen" class="screen hidden">
-        <h1>Asteroid Dodgers</h1>
-
-        <!-- Instructions Section -->
-        <div class="instructions-container">
-          <button class="instructions-toggle" id="instructions-toggle">
-            <i class="fa fa-question-circle"></i> How to Play
-            <i class="fa fa-chevron-down toggle-icon"></i>
-          </button>
-          <div class="instructions-content hidden" id="instructions-content">
-            <div class="instructions-grid">
-              <div class="instruction-section">
-                <h3><i class="fa fa-gamepad"></i> Controls</h3>
-                <div class="controls-list">
-                  <div class="control-item">
-                    <span class="key-combo"> <kbd>↑</kbd> or <kbd>W</kbd> </span>
-                    <span>Move Forward</span>
-                  </div>
-                  <div class="control-item">
-                    <span class="key-combo"> <kbd>↓</kbd> or <kbd>S</kbd> </span>
-                    <span>Break/Slow Down</span>
-                  </div>
-                  <div class="control-item">
-                    <span class="key-combo"> <kbd>←</kbd> or <kbd>A</kbd> </span>
-                    <span>Turn Left</span>
-                  </div>
-                  <div class="control-item">
-                    <span class="key-combo"> <kbd>→</kbd> or <kbd>D</kbd> </span>
-                    <span>Turn Right</span>
-                  </div>
-                  <div class="control-item">
-                    <span class="key-combo">
-                      <kbd>ESC</kbd>
-                    </span>
-                    <span>Pause/Resume</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="instruction-section">
-                <h3><i class="fa fa-target"></i> Objective</h3>
-                <ul>
-                  <li>Navigate your spaceship through the asteroid field</li>
-                  <li>Avoid colliding with asteroids to stay alive</li>
-                  <li>Survive longer than other players to win</li>
-                  <li>The last player standing wins the round!</li>
-                </ul>
-              </div>
-
-              <div class="instruction-section">
-                <h3><i class="fa fa-lightbulb-o"></i> Tips</h3>
-                <ul>
-                  <li>Stay alert - asteroids move in unpredictable patterns</li>
-                  <li>Use smooth movements to navigate tight spaces</li>
-                  <li>Watch other players' positions for strategic advantages</li>
-                  <li>Don't panic - steady movements often work better than quick jerks</li>
-                  <li>Collect powerups to gain temporary advantages</li>
-                  <li>
-                    Your ship will stop at the screen borders - plan your movements accordingly
-                  </li>
-                </ul>
-              </div>
-
-              <div class="instruction-section">
-                <h3><i class="fa fa-star"></i> Powerups</h3>
-                <div class="powerup-list">
-                  <div class="powerup-item">
-                    <div class="powerup-icon shield"></div>
-                    <div class="powerup-info">
-                      <strong>Shield</strong>
-                      <span>5 seconds of invulnerability to asteroids</span>
+        <!-- Join Screen -->
+        <div id="join-screen" class="screen hidden">
+          <!-- Instructions Section -->
+          <div class="instructions-container">
+            <button class="instructions-toggle" id="instructions-toggle">
+              <i class="fa fa-question-circle"></i> How to Play
+              <i class="fa fa-chevron-down toggle-icon"></i>
+            </button>
+            <div class="instructions-content hidden" id="instructions-content">
+              <div class="instructions-grid">
+                <div class="instruction-section">
+                  <h3><i class="fa fa-gamepad"></i> Controls</h3>
+                  <div class="controls-list">
+                    <div class="control-item">
+                      <span class="key-combo"> <kbd>↑</kbd> or <kbd>W</kbd> </span>
+                      <span>Move Forward</span>
                     </div>
-                  </div>
-                  <div class="powerup-item">
-                    <div class="powerup-icon speed"></div>
-                    <div class="powerup-info">
-                      <strong>Speed Boost</strong>
-                      <span>50% faster movement for 5 seconds</span>
+                    <div class="control-item">
+                      <span class="key-combo"> <kbd>↓</kbd> or <kbd>S</kbd> </span>
+                      <span>Break/Slow Down</span>
                     </div>
-                  </div>
-                  <div class="powerup-item">
-                    <div class="powerup-icon score"></div>
-                    <div class="powerup-info">
-                      <strong>Bonus Points</strong>
-                      <span>Instantly gain 50 bonus points</span>
+                    <div class="control-item">
+                      <span class="key-combo"> <kbd>←</kbd> or <kbd>A</kbd> </span>
+                      <span>Turn Left</span>
+                    </div>
+                    <div class="control-item">
+                      <span class="key-combo"> <kbd>→</kbd> or <kbd>D</kbd> </span>
+                      <span>Turn Right</span>
+                    </div>
+                    <div class="control-item">
+                      <span class="key-combo">
+                        <kbd>ESC</kbd>
+                      </span>
+                      <span>Pause/Resume</span>
                     </div>
                   </div>
                 </div>
+
+                <div class="instruction-section">
+                  <h3><i class="fa fa-target"></i> Objective</h3>
+                  <ul>
+                    <li>Navigate your spaceship through the asteroid field</li>
+                    <li>Avoid colliding with asteroids to stay alive</li>
+                    <li>Survive longer than other players to win</li>
+                    <li>The last player standing wins the round!</li>
+                  </ul>
+                </div>
+
+                <div class="instruction-section">
+                  <h3><i class="fa fa-lightbulb-o"></i> Tips</h3>
+                  <ul>
+                    <li>Stay alert - asteroids move in unpredictable patterns</li>
+                    <li>Use smooth movements to navigate tight spaces</li>
+                    <li>Watch other players' positions for strategic advantages</li>
+                    <li>Don't panic - steady movements often work better than quick jerks</li>
+                    <li>Collect powerups to gain temporary advantages</li>
+                    <li>
+                      Your ship will stop at the screen borders - plan your movements accordingly
+                    </li>
+                  </ul>
+                </div>
+
+                <div class="instruction-section">
+                  <h3><i class="fa fa-star"></i> Powerups</h3>
+                  <div class="powerup-list">
+                    <div class="powerup-item">
+                      <div class="powerup-icon shield"></div>
+                      <div class="powerup-info">
+                        <strong>Shield</strong>
+                        <span>5 seconds of invulnerability to asteroids</span>
+                      </div>
+                    </div>
+                    <div class="powerup-item">
+                      <div class="powerup-icon speed"></div>
+                      <div class="powerup-info">
+                        <strong>Speed Boost</strong>
+                        <span>50% faster movement for 5 seconds</span>
+                      </div>
+                    </div>
+                    <div class="powerup-item">
+                      <div class="powerup-icon score"></div>
+                      <div class="powerup-info">
+                        <strong>Bonus Points</strong>
+                        <span>Instantly gain 50 bonus points</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="instruction-section">
+                  <h3><i class="fa fa-users"></i> Multiplayer</h3>
+                  <ul>
+                    <li>Create a room or join an existing one</li>
+                    <li>Share the room code with friends</li>
+                    <li>Wait for all players to join before starting</li>
+                    <li>Enjoy competing against friends in real-time!</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-container">
+            <input type="text" id="player-name" placeholder="Enter your name" maxlength="15" />
+            <div class="room-controls">
+              <div class="room-selection">
+                <input type="text" id="room-id" placeholder="Room ID (leave empty to create)" />
+                <button id="refresh-rooms-btn" title="Refresh room list">
+                  <i class="fa fa-refresh"></i>
+                </button>
+                <div id="room-dropdown" class="room-dropdown hidden">
+                  <!-- Room options will be added here dynamically -->
+                  <div class="room-dropdown-loading">Looking for active rooms...</div>
+                </div>
+              </div>
+              <button id="create-join-btn">Create/Join Game</button>
+            </div>
+            <p id="connection-status"></p>
+          </div>
+          <div class="waiting-room hidden">
+            <h2>Waiting Room</h2>
+            <p>Room ID: <span id="room-code"></span></p>
+            <p>Share this code with friends to join!</p>
+
+            <div class="waiting-room-content">
+              <div class="players-section">
+                <h3>Players</h3>
+                <div id="players-list">
+                  <!-- Player entries will be added here dynamically -->
+                </div>
               </div>
 
-              <div class="instruction-section">
-                <h3><i class="fa fa-users"></i> Multiplayer</h3>
-                <ul>
-                  <li>Create a room or join an existing one</li>
-                  <li>Share the room code with friends</li>
-                  <li>Wait for all players to join before starting</li>
-                  <li>Enjoy competing against friends in real-time!</li>
-                </ul>
+              <div class="chat-section">
+                <h3>Chat</h3>
+                <div id="waiting-chat-messages">
+                  <!-- Chat messages will be displayed here -->
+                </div>
+                <div id="waiting-chat-input-container">
+                  <input
+                    type="text"
+                    id="waiting-chat-input"
+                    placeholder="Type a message..."
+                    maxlength="100"
+                  />
+                  <button id="waiting-chat-send-btn">
+                    <i class="fa fa-paper-plane"></i>
+                  </button>
+                </div>
               </div>
+            </div>
+
+            <div class="waiting-room-buttons">
+              <button id="start-game-btn" class="hidden">Start Game</button>
+              <button id="leave-room-btn">Leave Room</button>
             </div>
           </div>
         </div>
 
-        <div class="form-container">
-          <input type="text" id="player-name" placeholder="Enter your name" maxlength="15" />
-          <div class="room-controls">
-            <div class="room-selection">
-              <input type="text" id="room-id" placeholder="Room ID (leave empty to create)" />
-              <button id="refresh-rooms-btn" title="Refresh room list">
-                <i class="fa fa-refresh"></i>
-              </button>
-              <div id="room-dropdown" class="room-dropdown hidden">
-                <!-- Room options will be added here dynamically -->
-                <div class="room-dropdown-loading">Looking for active rooms...</div>
-              </div>
-            </div>
-            <button id="create-join-btn">Create/Join Game</button>
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen hidden">
+          <div id="game-area">
+            <!-- Game elements will be created here -->
           </div>
-          <p id="connection-status"></p>
-        </div>
-        <div class="waiting-room hidden">
-          <h2>Waiting Room</h2>
-          <p>Room ID: <span id="room-code"></span></p>
-          <p>Share this code with friends to join!</p>
-
-          <div class="waiting-room-content">
-            <div class="players-section">
-              <h3>Players</h3>
-              <div id="players-list">
-                <!-- Player entries will be added here dynamically -->
-              </div>
+          <div id="hud">
+            <div id="timer">00:00</div>
+            <div id="scoreboard">
+              <!-- Player scores will be added here dynamically -->
             </div>
-
-            <div class="chat-section">
-              <h3>Chat</h3>
-              <div id="waiting-chat-messages">
+            <!-- Chat Panel -->
+            <div id="chat-panel" class="hidden">
+              <div id="chat-header">
+                <span>Chat</span>
+                <button id="chat-toggle-btn" title="Toggle Chat">
+                  <i class="fa fa-minus"></i>
+                </button>
+              </div>
+              <div id="chat-messages">
                 <!-- Chat messages will be displayed here -->
               </div>
-              <div id="waiting-chat-input-container">
+              <div id="chat-input-container">
                 <input
                   type="text"
-                  id="waiting-chat-input"
+                  id="chat-input"
                   placeholder="Type a message..."
                   maxlength="100"
                 />
-                <button id="waiting-chat-send-btn">
+                <button id="chat-send-btn">
                   <i class="fa fa-paper-plane"></i>
                 </button>
               </div>
             </div>
           </div>
-
-          <div class="waiting-room-buttons">
-            <button id="start-game-btn" class="hidden">Start Game</button>
-            <button id="leave-room-btn">Leave Room</button>
-          </div>
         </div>
-      </div>
-
-      <!-- Game Screen -->
-      <div id="game-screen" class="screen hidden">
-        <div id="game-area">
-          <!-- Game elements will be created here -->
+        <!-- Game Menu -->
+        <div id="game-menu" class="hidden">
+          <h2>Game Paused</h2>
+          <button id="resume-btn">Resume Game</button>
+          <button id="restart-btn">Restart Game</button>
+          <button id="quit-btn">Quit Game</button>
+          <p class="keyboard-hint">Press ESC to resume</p>
         </div>
-        <div id="hud">
-          <div id="timer">00:00</div>
-          <div id="scoreboard">
-            <!-- Player scores will be added here dynamically -->
-          </div>
-          <!-- Chat Panel -->
-          <div id="chat-panel" class="hidden">
-            <div id="chat-header">
-              <span>Chat</span>
-              <button id="chat-toggle-btn" title="Toggle Chat">
-                <i class="fa fa-minus"></i>
-              </button>
-            </div>
-            <div id="chat-messages">
-              <!-- Chat messages will be displayed here -->
-            </div>
-            <div id="chat-input-container">
-              <input type="text" id="chat-input" placeholder="Type a message..." maxlength="100" />
-              <button id="chat-send-btn">
-                <i class="fa fa-paper-plane"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- Game Menu -->
-      <div id="game-menu" class="hidden">
-        <h2>Game Paused</h2>
-        <button id="resume-btn">Resume Game</button>
-        <button id="restart-btn">Restart Game</button>
-        <button id="quit-btn">Quit Game</button>
-        <p class="keyboard-hint">Press ESC to resume</p>
-      </div>
 
-      <!-- Game Over Screen -->
-      <div id="game-over-screen" class="screen hidden">
-        <h1>Game Over</h1>
-        <div id="winner-display"></div>
-        <div id="final-scores"></div>
-        <button id="play-again-btn">Play Again</button>
-        <button id="exit-btn">Exit</button>
+        <!-- Game Over Screen -->
+        <div id="game-over-screen" class="screen hidden">
+          <h1>Game Over</h1>
+          <div id="winner-display"></div>
+          <div id="final-scores"></div>
+          <button id="play-again-btn">Play Again</button>
+          <button id="exit-btn">Exit</button>
+        </div>
       </div>
     </div>
 
