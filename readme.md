@@ -1,12 +1,11 @@
 # Asteroid Dodgers - Multiplayer Web Game
 
-A real-time multiplayer web game where players control ships to avoid asteroids and collect power-ups. Built using pure JavaScript and DOM elements (no Canvas).
+A real-time multiplayer web game where players control ships to avoid asteroids and collect power-ups. Built using pure JavaScript and DOM elements (no Canvas). This is an online multiplayer experience designed for 2-4 players.
 
 ## Features
 
 - Real-time multiplayer gameplay for 2-4 players
 - Smooth 60 FPS performance
-- Pure DOM-based rendering (no Canvas)
 - Keyboard controls with responsive input
 - Power-ups system
 - In-game menu (pause/resume/quit)
@@ -34,36 +33,30 @@ git clone https://gitea.kood.tech/orvetpriimagi/web-game.git
 npm install
 ```
 
-### Running the Game Locally
+### Running the Multiplayer Game
 
-#### Single-player/Testing Mode
+Start the multiplayer server:
 
 ```bash
 npm start
 ```
 
-This will start a local server at http://localhost:3000 where you can play in local mode with AI opponents.
-
-#### Multiplayer Mode
-
-```bash
-npm run multiplayer
-```
-
-This will start the multiplayer server. Players can connect to the server address shown in the console.
 
 ## How to Play
 
-1. Open the game URL in your browser
-2. Enter your player name and create or join a room
-3. When all players have joined, the host can start the game
-4. Use the arrow keys or WASD to control your ship:
+1. Start the multiplayer server using `npm start`
+2. Open http://localhost:3000/ (multiple players can connect)
+3. Enter your player name and create or join a room
+4. Wait for other players to join (2-4 players supported)
+5. When all players have joined, the host can start the game
+6. Use the arrow keys or WASD to control your ship:
    - Up/W: Accelerate
    - Down/S: Brake
    - Left/A: Rotate left
    - Right/D: Rotate right
-5. Avoid asteroids and collect power-ups
-6. The player with the highest score at the end of the round wins
+7. Avoid asteroids and collect power-ups
+8. The player with the highest score at the end of the round wins
+9. Compete with other players in real-time!
 
 ## Power-Ups
 
@@ -78,7 +71,6 @@ This will start the multiplayer server. Players can connect to the server addres
 ```
 asteroid-dodgers/
 ├── index.html          # Main HTML file
-├── server.js           # Local development server
 ├── multiplayer-server.js # Multiplayer server
 ├── src/
 │   ├── css/
@@ -96,3 +88,8 @@ asteroid-dodgers/
 └── package.json        # Project dependencies
 ```
 
+
+## Development team
+
+- **Ranno Poklonski**
+- **Orvet Priimägi**

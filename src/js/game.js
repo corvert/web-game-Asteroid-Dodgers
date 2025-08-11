@@ -69,7 +69,7 @@ class Game {
         
         // Ensure we have valid bounds
         if (rect.width <= 0 || rect.height <= 0) {
-            console.warn('Game area has invalid dimensions, using defaults');
+            // console.warn('Game area has invalid dimensions, using defaults');
             this.bounds.width = 1000; // Default width
             this.bounds.height = 700; // Default height
             
@@ -806,25 +806,51 @@ class Game {
             }
         }
         
-        // Determine winner based on score
+        // Determine winner based on score and survival time, accounting for draws
         const playersList = Array.from(this.players.values());
-        playersList.sort((a, b) => b.score - a.score);
+        playersList.sort((a, b) => {
+            // First sort by score (descending)
+            if (b.score !== a.score) {
+                return b.score - a.score;
+            }
+            // If scores are equal, sort by survival time (descending)
+            return b.survivalTime - a.survivalTime;
+        });
         
-        const winner = playersList[0];
+        // Check for draw conditions
+        let winners = [playersList[0]];
+        const highestScore = playersList[0].score;
+        const longestTime = playersList[0].survivalTime;
+        
+        // Find all players with the same highest score and survival time
+        for (let i = 1; i < playersList.length; i++) {
+            const player = playersList[i];
+            if (player.score === highestScore && 
+                Math.abs(player.survivalTime - longestTime) < 0.1) { // Allow for small timing differences
+                winners.push(player);
+            } else {
+                break; // No more tied players
+            }
+        }
+        
+        const isDraw = winners.length > 1;
+        const winner = isDraw ? null : winners[0]; // null for draw, single winner otherwise
+        
         const scores = playersList.map(p => ({
             id: p.id,
             name: p.name,
             score: p.score,
-            isWinner: p === winner,
+            isWinner: isDraw ? winners.includes(p) : (p === winner),
             color: p.color,
             survivalTime: p.survivalTime,
             formattedSurvivalTime: p.getFormattedSurvivalTime(),
-            isAlive: p.isAlive
+            isAlive: p.isAlive,
+            isDraw: isDraw
         }));
         
         // Trigger game over callback
         if (this.callbacks.onGameOver) {
-            this.callbacks.onGameOver(winner.id, scores);
+            this.callbacks.onGameOver(winner ? winner.id : null, scores);
         }
     }
     

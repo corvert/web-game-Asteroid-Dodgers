@@ -45,7 +45,19 @@ class UIManager {
             winnerDisplay: document.getElementById('winner-display'),
             finalScores: document.getElementById('final-scores'),
             playAgainBtn: document.getElementById('play-again-btn'),
-            exitBtn: document.getElementById('exit-btn')
+            exitBtn: document.getElementById('exit-btn'),
+            
+            // Chat elements
+            chatPanel: document.getElementById('chat-panel'),
+            chatToggleBtn: document.getElementById('chat-toggle-btn'),
+            chatMessages: document.getElementById('chat-messages'),
+            chatInput: document.getElementById('chat-input'),
+            chatSendBtn: document.getElementById('chat-send-btn'),
+            
+            // Waiting room chat elements
+            waitingChatMessages: document.getElementById('waiting-chat-messages'),
+            waitingChatInput: document.getElementById('waiting-chat-input'),
+            waitingChatSendBtn: document.getElementById('waiting-chat-send-btn')
         };
           // Event callbacks
         this.callbacks = {
@@ -55,7 +67,8 @@ class UIManager {
             onRestartGame: null,
             onQuitGame: null,
             onPlayAgain: null,
-            onLeaveRoom: null
+            onLeaveRoom: null,
+            onSendChatMessage: null
         };
         
         // Track active notifications for stacking
@@ -251,6 +264,56 @@ class UIManager {
             this.toggleInstructions();
             AudioSystem.play('click');
         });
+        
+        // Chat event listeners
+        this.setupChatEventListeners();
+    }
+    
+    /**
+     * Set up chat-related event listeners
+     */
+    setupChatEventListeners() {
+        // Game chat toggle
+        if (this.elements.chatToggleBtn) {
+            this.elements.chatToggleBtn.addEventListener('click', () => {
+                this.toggleChatPanel();
+                AudioSystem.play('click');
+            });
+        }
+        
+        // Game chat send button
+        if (this.elements.chatSendBtn) {
+            this.elements.chatSendBtn.addEventListener('click', () => {
+                this.sendChatMessage();
+            });
+        }
+        
+        // Game chat input enter key
+        if (this.elements.chatInput) {
+            this.elements.chatInput.addEventListener('keyup', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    this.sendChatMessage();
+                }
+            });
+        }
+        
+        // Waiting room chat send button
+        if (this.elements.waitingChatSendBtn) {
+            this.elements.waitingChatSendBtn.addEventListener('click', () => {
+                this.sendWaitingChatMessage();
+            });
+        }
+        
+        // Waiting room chat input enter key
+        if (this.elements.waitingChatInput) {
+            this.elements.waitingChatInput.addEventListener('keyup', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    this.sendWaitingChatMessage();
+                }
+            });
+        }
     }
     
     /**
@@ -509,8 +572,21 @@ class UIManager {
     showGameOver(winner, scores, isHost = false, isLocalGame = false) {
         this.hideAllScreens();
         
-        // Display winner info - safely handle undefined winner
-        if (winner && winner.name) {
+        // Display winner info - handle draws and undefined winner
+        const isDraw = scores.length > 0 && scores[0].isDraw;
+        
+        if (isDraw) {
+            // Find all winners for draw display
+            const drawWinners = scores.filter(p => p.isWinner);
+            if (drawWinners.length > 1) {
+                const winnerNames = drawWinners.map(p => p.name).join(' & ');
+                this.elements.winnerDisplay.textContent = `Draw: ${winnerNames}!`;
+                this.elements.winnerDisplay.style.color = '#FFD700'; // Gold color for draws
+            } else {
+                this.elements.winnerDisplay.textContent = `It's a Draw!`;
+                this.elements.winnerDisplay.style.color = '#FFD700';
+            }
+        } else if (winner && winner.name) {
             this.elements.winnerDisplay.textContent = `${winner.name} wins!`;
             this.elements.winnerDisplay.style.color = winner.color;
         } else {
@@ -541,7 +617,11 @@ class UIManager {
             scoreEntry.className = 'final-score-entry';
             
             if (player.isWinner) {
-                scoreEntry.classList.add('winner');
+                if (isDraw) {
+                    scoreEntry.classList.add('draw');
+                } else {
+                    scoreEntry.classList.add('winner');
+                }
             }
             
             const nameElement = document.createElement('div');
@@ -930,5 +1010,152 @@ class UIManager {
         
         // Play error sound
         AudioSystem.play('error');
+    }
+    
+    /**
+     * Toggle chat panel visibility
+     */
+    toggleChatPanel() {
+        if (!this.elements.chatPanel) return;
+        
+        this.elements.chatPanel.classList.toggle('minimized');
+        
+        // Update toggle button icon
+        const icon = this.elements.chatToggleBtn.querySelector('i');
+        if (this.elements.chatPanel.classList.contains('minimized')) {
+            icon.className = 'fa fa-plus';
+        } else {
+            icon.className = 'fa fa-minus';
+        }
+    }
+    
+    /**
+     * Show chat panel during game
+     */
+    showChatPanel() {
+        if (!this.elements.chatPanel) return;
+        
+        this.elements.chatPanel.classList.remove('hidden');
+        this.elements.chatPanel.classList.remove('minimized');
+        
+        // Update toggle button icon
+        const icon = this.elements.chatToggleBtn.querySelector('i');
+        icon.className = 'fa fa-minus';
+    }
+    
+    /**
+     * Hide chat panel
+     */
+    hideChatPanel() {
+        if (!this.elements.chatPanel) return;
+        
+        this.elements.chatPanel.classList.add('hidden');
+    }
+    
+    /**
+     * Send chat message from game screen
+     */
+    sendChatMessage() {
+        if (!this.elements.chatInput) return;
+        
+        const message = this.elements.chatInput.value.trim();
+        if (message && this.callbacks.onSendChatMessage) {
+            this.callbacks.onSendChatMessage(message);
+            this.elements.chatInput.value = '';
+            AudioSystem.play('message');
+        }
+    }
+    
+    /**
+     * Send chat message from waiting room
+     */
+    sendWaitingChatMessage() {
+        if (!this.elements.waitingChatInput) return;
+        
+        const message = this.elements.waitingChatInput.value.trim();
+        if (message && this.callbacks.onSendChatMessage) {
+            this.callbacks.onSendChatMessage(message);
+            this.elements.waitingChatInput.value = '';
+            AudioSystem.play('message');
+        }
+    }
+    
+    /**
+     * Add a chat message to the display
+     * @param {Object} messageData - Chat message data
+     */
+    addChatMessage(messageData) {
+        const { type, playerName, playerColor, message, timestamp } = messageData;
+        
+        // Add to both chat containers if they exist
+        this.addMessageToContainer(this.elements.chatMessages, messageData);
+        this.addMessageToContainer(this.elements.waitingChatMessages, messageData);
+    }
+    
+    /**
+     * Add message to a specific chat container
+     * @param {HTMLElement} container - Chat messages container
+     * @param {Object} messageData - Chat message data
+     */
+    addMessageToContainer(container, messageData) {
+        if (!container) return;
+        
+        const { type, playerName, playerColor, message, timestamp } = messageData;
+        
+        const messageElement = document.createElement('div');
+        messageElement.className = `chat-message ${type}`;
+        
+        // Create timestamp
+        const time = new Date(timestamp);
+        const timeString = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        if (type === 'system') {
+            messageElement.innerHTML = `
+                <span class="timestamp">${timeString}</span>
+                <span class="message">${this.escapeHtml(message)}</span>
+            `;
+        } else {
+            // Player message
+            const usernameStyle = playerColor ? `color: ${playerColor}` : '';
+            messageElement.innerHTML = `
+                <span class="timestamp">${timeString}</span>
+                <span class="username" style="${usernameStyle}">${this.escapeHtml(playerName)}:</span>
+                <span class="message">${this.escapeHtml(message)}</span>
+            `;
+        }
+        
+        container.appendChild(messageElement);
+        
+        // Auto-scroll to bottom
+        container.scrollTop = container.scrollHeight;
+        
+        // Limit message history to prevent memory issues
+        const maxMessages = 100;
+        while (container.children.length > maxMessages) {
+            container.removeChild(container.firstChild);
+        }
+    }
+    
+    /**
+     * Clear chat messages
+     */
+    clearChatMessages() {
+        if (this.elements.chatMessages) {
+            this.elements.chatMessages.innerHTML = '';
+        }
+        if (this.elements.waitingChatMessages) {
+            this.elements.waitingChatMessages.innerHTML = '';
+        }
+    }
+    
+    /**
+     * Escape HTML to prevent XSS
+     * @param {string} text - Text to escape
+     * @returns {string} Escaped text
+     */
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 }

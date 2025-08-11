@@ -56,7 +56,8 @@ class AsteroidDodgers {    constructor() {
             onRestartGame: this.handleRestartGame.bind(this),
             onQuitGame: this.handleQuitGame.bind(this),
             onPlayAgain: this.handlePlayAgain.bind(this),
-            onLeaveRoom: this.handleLeaveRoom.bind(this)
+            onLeaveRoom: this.handleLeaveRoom.bind(this),
+            onSendChatMessage: this.handleSendChatMessage.bind(this)
         });
         
         // Register game callbacks
@@ -89,7 +90,8 @@ class AsteroidDodgers {    constructor() {
             onRoomClosed: this.handleRoomClosed.bind(this),
             onEntitySpawn: this.handleEntitySpawn.bind(this),
             onEntityCollision: this.handleEntityCollision.bind(this),
-            onEntityExpire: this.handleEntityExpire.bind(this)
+            onEntityExpire: this.handleEntityExpire.bind(this),
+            onChatMessage: this.handleChatMessage.bind(this)
         });
         
         // Connect to multiplayer server
@@ -354,13 +356,14 @@ class AsteroidDodgers {    constructor() {
             this.game.start();
         }
     }
-      /**
+    /**
      * Handle game over event
-     * @param {string} winnerId - ID of the winning player
+     * @param {string|null} winnerId - ID of the winning player, or null for draws
      * @param {Array} scores - Final player scores
      */
     handleGameOver(winnerId, scores) {
-        const winner = scores.find(p => p.id === winnerId) || scores[0];
+        // For draws, winnerId will be null, so we handle it appropriately
+        const winner = winnerId ? scores.find(p => p.id === winnerId) : null;
         
         // Store last winner and scores for potential restart
         this.game.lastWinner = winner;
@@ -369,6 +372,9 @@ class AsteroidDodgers {    constructor() {
         // Pass host status and local game flag to UI
         const isHost = !this.debugLocalGame && this.network.isHost;
         this.ui.showGameOver(winner, scores, isHost, this.debugLocalGame);
+        
+        // Hide chat panel when game ends
+        this.ui.hideChatPanel();
         
         // Stop network updates
         if (!this.debugLocalGame) {
@@ -519,6 +525,9 @@ class AsteroidDodgers {    constructor() {
         
         // Show game screen
         this.ui.showGameScreen();
+        
+        // Show chat panel during game
+        this.ui.showChatPanel();
         
         // Create players from network data
         data.players.forEach(playerData => {
@@ -725,7 +734,7 @@ class AsteroidDodgers {    constructor() {
     }
     
     /**
-     * Handle room closed event (when host quits before game start)
+     * Handle room closed event (when host quits before game start or insufficient players)
      * @param {Object} data - Room closed data
      */
     handleRoomClosed(data) {
@@ -733,12 +742,17 @@ class AsteroidDodgers {    constructor() {
         this.ui.hideWaitingRoom();
         this.ui.showJoinScreen();
         
-        // Show notification to the user
-        const message = data.hostName ? 
-            `Room closed: The host (${data.hostName}) left the game.` : 
-            `Room closed: The host left the game.`;
+        // Show notification to the user based on the reason
+        let message;
+        if (data.reason === 'insufficient_players') {
+            message = 'Room closed: Only one player remained, multiplayer requires at least 2 players.';
+        } else if (data.hostName) {
+            message = `Room closed: The host (${data.hostName}) left the game.`;
+        } else {
+            message = 'Room closed: The host left the game.';
+        }
         
-        this.ui.showConnectionStatus(message, 'error');
+        this.ui.showConnectionStatus(message, 'info');
         
         // Sound effect
         AudioSystem.play('error');
@@ -846,6 +860,12 @@ class AsteroidDodgers {    constructor() {
         // Explicitly reset host status in UI
         this.ui.resetHostStatus();
         
+        // Clear chat messages when leaving room
+        this.ui.clearChatMessages();
+        
+        // Hide chat panel
+        this.ui.hideChatPanel();
+        
         // Return to join screen
         this.ui.hideWaitingRoom();
         this.ui.showJoinScreen();
@@ -855,6 +875,36 @@ class AsteroidDodgers {    constructor() {
         
         // Sound effect
         AudioSystem.play('leave');
+    }
+    
+    /**
+     * Handle sending chat message
+     * @param {string} message - Message to send
+     */
+    handleSendChatMessage(message) {
+        if (!this.network || !this.network.isConnected) {
+            console.error('Cannot send chat message: not connected');
+            return;
+        }
+        
+        console.log('Sending chat message:', message);
+        this.network.sendChatMessage(message);
+    }
+    
+    /**
+     * Handle receiving chat message
+     * @param {Object} messageData - Chat message data
+     */
+    handleChatMessage(messageData) {
+        console.log('Received chat message:', messageData);
+        
+        // Add the message to UI
+        this.ui.addChatMessage(messageData);
+        
+        // Play notification sound for messages from other players
+        if (messageData.playerId !== this.network.playerId && messageData.type === 'player') {
+            AudioSystem.play('message');
+        }
     }
 }
 

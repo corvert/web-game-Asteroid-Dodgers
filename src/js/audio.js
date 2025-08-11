@@ -17,6 +17,7 @@ class AudioManager {
             'countdown': { src: 'src/assets/sounds/countdown.mp3', volume: 0.5 },
             'error': { src: 'src/assets/sounds/error.mp3', volume: 0.5 },
             'notification': { src: 'src/assets/sounds/notification.mp3', volume: 0.5 },
+            'message': { src: 'src/assets/sounds/message.mp3', volume: 0.4 },
             
             // Game sounds
             'collision': { src: 'src/assets/sounds/collision.mp3', volume: 0.6 },

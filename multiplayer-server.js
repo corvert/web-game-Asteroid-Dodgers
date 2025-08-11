@@ -145,6 +145,15 @@ io.on('connection', (socket) => {
         
         // Notify other players in the room
         socket.to(joinedRoom.id).emit('room:player_joined', player);
+        
+        // Send system chat message for player join
+        const joinMessage = {
+            id: `sys_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            message: `${name} joined the room`,
+            timestamp: new Date().toISOString(),
+            type: 'system'
+        };
+        io.to(joinedRoom.id).emit('chat:message', joinMessage);
     });
     
     // Room leave handler
@@ -201,10 +210,45 @@ io.on('connection', (socket) => {
                 name: playerName
             });
             
+            // Send system chat message for player leave
+            const leaveMessage = {
+                id: `sys_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                message: `${playerName} left the room`,
+                timestamp: new Date().toISOString(),
+                type: 'system'
+            };
+            socket.to(roomId).emit('chat:message', leaveMessage);
+            
             // If room is empty, remove it
             if (room.players.length === 0) {
                 rooms.delete(roomId);
                 console.log(`Room ${roomId} removed (empty)`);
+                return;
+            }
+            
+            // If only one player remains in the room, close it since multiplayer requires at least 2 players
+            if (room.players.length === 1 && !room.gameInProgress) {
+                const remainingPlayer = room.players[0];
+                console.log(`Only one player remains in room ${roomId}, closing room`);
+                
+                // Notify the remaining player that the room is closing
+                io.to(roomId).emit('room:closed', { 
+                    reason: 'insufficient_players',
+                    message: 'Room closed because only one player remained',
+                    playerName: remainingPlayer.name
+                });
+                
+                // Force the remaining player to leave the socket.io room
+                const playerSocket = io.sockets.sockets.get(remainingPlayer.id);
+                if (playerSocket) {
+                    playerSocket.leave(roomId);
+                    playerSocket.roomId = null;
+                    playerSocket.playerName = null;
+                }
+                
+                // Remove the room
+                rooms.delete(roomId);
+                console.log(`Room ${roomId} removed (insufficient players)`);
                 return;
             }
             
@@ -425,6 +469,54 @@ io.on('connection', (socket) => {
         }
     });
     
+    // Handle chat messages
+    socket.on('chat:message', (data) => {
+        const { message } = data;
+        const roomId = socket.roomId || findPlayerRoom(socket.id);
+        
+        if (!roomId) {
+            console.log(`Chat message from player ${socket.id} but no room found`);
+            return;
+        }
+        
+        const room = rooms.get(roomId);
+        if (!room) {
+            console.log(`Chat message from player ${socket.id} but room ${roomId} not found`);
+            return;
+        }
+        
+        // Find the player
+        const player = room.players.find(p => p.id === socket.id);
+        if (!player) {
+            console.log(`Chat message from player ${socket.id} but player not found in room ${roomId}`);
+            return;
+        }
+        
+        // Validate message
+        if (!message || typeof message !== 'string' || message.trim() === '') {
+            return;
+        }
+        
+        // Sanitize message (basic XSS prevention)
+        const sanitizedMessage = message.trim().substring(0, 100);
+        
+        // Create chat message object
+        const chatMessage = {
+            id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            playerId: socket.id,
+            playerName: player.name,
+            playerColor: player.color,
+            message: sanitizedMessage,
+            timestamp: new Date().toISOString(),
+            type: 'player'
+        };
+        
+        console.log(`Chat message in room ${roomId} from ${player.name}: ${sanitizedMessage}`);
+        
+        // Broadcast message to all players in the room
+        io.to(roomId).emit('chat:message', chatMessage);
+    });
+    
     // Handle player disconnection
     socket.on('disconnect', () => {
         console.log(`Player disconnected: ${socket.id}`);
@@ -480,6 +572,15 @@ io.on('connection', (socket) => {
                         id: socket.id,
                         name: playerName
                     });
+                    
+                    // Send system chat message for player disconnect
+                    const disconnectMessage = {
+                        id: `sys_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                        message: `${playerName} disconnected`,
+                        timestamp: new Date().toISOString(),
+                        type: 'system'
+                    };
+                    socket.to(roomId).emit('chat:message', disconnectMessage);
                     
                     // If room is empty, remove it
                     if (room.players.length === 0) {

@@ -134,26 +134,26 @@ const Utils = {
             frameCount++;
             
             // Update FPS counter approximately once per second
-            if (elapsed >= 1000) {
-                fps = (frameCount * 1000) / elapsed;
+            // if (elapsed >= 1000) {
+            //     fps = (frameCount * 1000) / elapsed;
                 
-                // Check for performance issues
-                if (fps < fpsThreshold) {
-                    console.warn(`Low FPS detected: ${fps.toFixed(1)} FPS`);
+            //     // Check for performance issues
+            //     // if (fps < fpsThreshold) {
+            //     //     console.warn(`Low FPS detected: ${fps.toFixed(1)} FPS`);
                     
-                    // Calculate average frame time and jank frames
-                    const avgFrameTime = framesTime.reduce((a, b) => a + b, 0) / framesTime.length;
-                    const jankFrames = framesTime.filter(time => time > (1000 / 50)).length;
+            //     //     // Calculate average frame time and jank frames
+            //     //     const avgFrameTime = framesTime.reduce((a, b) => a + b, 0) / framesTime.length;
+            //     //     const jankFrames = framesTime.filter(time => time > (1000 / 50)).length;
                     
-                    console.warn(`Average frame time: ${avgFrameTime.toFixed(2)}ms`);
-                    console.warn(`Jank frames: ${jankFrames} (${((jankFrames / framesTime.length) * 100).toFixed(1)}%)`);
-                }
+            //     //     console.warn(`Average frame time: ${avgFrameTime.toFixed(2)}ms`);
+            //     //     console.warn(`Jank frames: ${jankFrames} (${((jankFrames / framesTime.length) * 100).toFixed(1)}%)`);
+            //     // }
                 
-                frameCount = 0;
-                lastTime = now;
-            }
+            //     frameCount = 0;
+            //     lastTime = now;
+            // }
             
-            return fps;
+            // return fps;
         };
         
         return {

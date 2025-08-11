@@ -28,7 +28,8 @@ class NetworkManager {
             onRoomClosed: null,
             onEntitySpawn: null,
             onEntityCollision: null,
-            onEntityExpire: null
+            onEntityExpire: null,
+            onChatMessage: null
         };
         
         // Network state
@@ -324,23 +325,31 @@ class NetworkManager {
         
         // Entity synchronization events
         this.socket.on('entity:spawn', (data) => {
-            console.log('Entity spawn event received:', data);
+            // console.log('Entity spawn event received:', data);
             if (this.callbacks.onEntitySpawn) {
                 this.callbacks.onEntitySpawn(data.type, data.data);
             }
         });
         
         this.socket.on('entity:collision', (data) => {
-            console.log('Entity collision event received:', data);
+            // console.log('Entity collision event received:', data);
             if (this.callbacks.onEntityCollision) {
                 this.callbacks.onEntityCollision(data.entityType, data.entityId, data.playerId);
             }
         });
         
         this.socket.on('entity:expire', (data) => {
-            console.log('Entity expire event received:', data);
+            // console.log('Entity expire event received:', data);
             if (this.callbacks.onEntityExpire) {
                 this.callbacks.onEntityExpire(data.type, data.id);
+            }
+        });
+        
+        // Chat message event
+        this.socket.on('chat:message', (message) => {
+            console.log('Chat message received:', message);
+            if (this.callbacks.onChatMessage) {
+                this.callbacks.onChatMessage(message);
             }
         });
     }
@@ -487,6 +496,34 @@ class NetworkManager {
      */
     getAllPlayers() {
         return Array.from(this.players.values());
+    }
+    
+    /**
+     * Send a chat message
+     * @param {string} message - The message to send
+     */
+    sendChatMessage(message) {
+        if (!this.socket || !this.isConnected) {
+            console.error('Cannot send chat message: not connected to server');
+            return false;
+        }
+        
+        if (!this.roomId) {
+            console.error('Cannot send chat message: not in a room');
+            return false;
+        }
+        
+        if (!message || typeof message !== 'string' || message.trim() === '') {
+            console.error('Cannot send empty chat message');
+            return false;
+        }
+        
+        // Trim and limit message length
+        const trimmedMessage = message.trim().substring(0, 100);
+        
+        this.socket.emit('chat:message', { message: trimmedMessage });
+        console.log('Sent chat message:', trimmedMessage);
+        return true;
     }
     
     /**

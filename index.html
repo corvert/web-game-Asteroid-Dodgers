@@ -147,9 +147,34 @@
           <h2>Waiting Room</h2>
           <p>Room ID: <span id="room-code"></span></p>
           <p>Share this code with friends to join!</p>
-          <div id="players-list">
-            <!-- Player entries will be added here dynamically -->
+
+          <div class="waiting-room-content">
+            <div class="players-section">
+              <h3>Players</h3>
+              <div id="players-list">
+                <!-- Player entries will be added here dynamically -->
+              </div>
+            </div>
+
+            <div class="chat-section">
+              <h3>Chat</h3>
+              <div id="waiting-chat-messages">
+                <!-- Chat messages will be displayed here -->
+              </div>
+              <div id="waiting-chat-input-container">
+                <input
+                  type="text"
+                  id="waiting-chat-input"
+                  placeholder="Type a message..."
+                  maxlength="100"
+                />
+                <button id="waiting-chat-send-btn">
+                  <i class="fa fa-paper-plane"></i>
+                </button>
+              </div>
+            </div>
           </div>
+
           <div class="waiting-room-buttons">
             <button id="start-game-btn" class="hidden">Start Game</button>
             <button id="leave-room-btn">Leave Room</button>
@@ -166,6 +191,24 @@
           <div id="timer">00:00</div>
           <div id="scoreboard">
             <!-- Player scores will be added here dynamically -->
+          </div>
+          <!-- Chat Panel -->
+          <div id="chat-panel" class="hidden">
+            <div id="chat-header">
+              <span>Chat</span>
+              <button id="chat-toggle-btn" title="Toggle Chat">
+                <i class="fa fa-minus"></i>
+              </button>
+            </div>
+            <div id="chat-messages">
+              <!-- Chat messages will be displayed here -->
+            </div>
+            <div id="chat-input-container">
+              <input type="text" id="chat-input" placeholder="Type a message..." maxlength="100" />
+              <button id="chat-send-btn">
+                <i class="fa fa-paper-plane"></i>
+              </button>
+            </div>
           </div>
         </div>
       </div>
