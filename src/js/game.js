@@ -22,6 +22,9 @@ class Game {
         this.network = null;
         this.isNetworkGame = false;
         
+        // UI reference
+        this.ui = null;
+        
         // Game settings
         this.settings = {
             gameDuration: 120, // 2 minutes
@@ -102,6 +105,14 @@ class Game {
     setNetworkManager(network) {
         this.network = network;
         this.isNetworkGame = network !== null;
+    }
+    
+    /**
+     * Set UI manager for game display
+     * @param {UIManager} ui - UI manager instance
+     */
+    setUIManager(ui) {
+        this.ui = ui;
     }
     
     /**
@@ -287,12 +298,35 @@ class Game {
         // Play countdown sound
         AudioSystem.play('countdown');
         
-        // Start countdown
+        // Start countdown with UI display
         let countdown = this.settings.roundStartCountdown;
+        
+        // Show initial countdown number
+        if (this.ui) {
+            this.ui.showCountdown(countdown);
+        }
+        
         const countdownInterval = setInterval(() => {
             countdown--;
-            if (countdown <= 0) {
+            
+            if (countdown > 0) {
+                // Show next countdown number
+                if (this.ui) {
+                    this.ui.showCountdown(countdown);
+                }
+            } else if (countdown === 0) {
+                // Show "GO!" 
+                if (this.ui) {
+                    this.ui.showCountdown(0); // 0 triggers "GO!" display
+                }
+            } else {
+                // Countdown finished, hide display and start game
                 clearInterval(countdownInterval);
+                if (this.ui) {
+                    setTimeout(() => {
+                        this.ui.hideCountdown();
+                    }, 500); // Keep "GO!" visible for half a second
+                }
                 this.startGameLoop(synchronizedStartTime);
                 AudioSystem.play('start');
             }

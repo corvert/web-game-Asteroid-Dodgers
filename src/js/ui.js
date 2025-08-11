@@ -35,6 +35,7 @@ class UIManager {
             gameArea: document.getElementById('game-area'),
             timer: document.getElementById('timer'),
             scoreboard: document.getElementById('scoreboard'),
+            countdownDisplay: document.getElementById('countdown-display'),
               // Game menu
             gameMenu: document.getElementById('game-menu'),
             resumeBtn: document.getElementById('resume-btn'),
@@ -515,6 +516,43 @@ class UIManager {
      */
     hideMenu() {
         this.elements.gameMenu.classList.add('hidden');
+    }
+    
+    /**
+     * Show countdown display
+     * @param {number} count - The countdown number to display
+     */
+    showCountdown(count) {
+        if (!this.elements.countdownDisplay) return;
+        
+        const countdownText = this.elements.countdownDisplay.querySelector('.countdown-text');
+        if (!countdownText) return;
+        
+        // Update text
+        if (count <= 0) {
+            countdownText.textContent = 'GO!';
+            countdownText.classList.add('go');
+        } else {
+            countdownText.textContent = count;
+            countdownText.classList.remove('go');
+        }
+        
+        // Show countdown
+        this.elements.countdownDisplay.classList.remove('hidden');
+        
+        // Trigger animation by removing and re-adding animation class
+        countdownText.style.animation = 'none';
+        countdownText.offsetHeight; // Force reflow
+        countdownText.style.animation = 'countdownPulse 1s ease-in-out';
+    }
+    
+    /**
+     * Hide countdown display
+     */
+    hideCountdown() {
+        if (this.elements.countdownDisplay) {
+            this.elements.countdownDisplay.classList.add('hidden');
+        }
     }
     
     /**

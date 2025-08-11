@@ -247,6 +247,52 @@ button:hover {
     border: #FFA500 2px solid;
 }
 
+/* Countdown Display */
+.countdown-display {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.countdown-text {
+    font-size: 8rem;
+    font-weight: bold;
+    color: #FFA500;
+    text-shadow: 
+        0 0 20px rgba(255, 165, 0, 0.8),
+        0 0 40px rgba(255, 165, 0, 0.6),
+        0 0 60px rgba(255, 165, 0, 0.4);
+    animation: countdownPulse 1s ease-in-out;
+    text-align: center;
+    min-width: 200px;
+}
+
+.countdown-text.go {
+    color: #4CAF50;
+    text-shadow: 
+        0 0 20px rgba(76, 175, 80, 0.8),
+        0 0 40px rgba(76, 175, 80, 0.6),
+        0 0 60px rgba(76, 175, 80, 0.4);
+}
+
+@keyframes countdownPulse {
+    0% {
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0.9;
+    }
+}
+
 .player-ship {
     position: absolute;
     width: 40px;

@@ -40,6 +40,9 @@ class AsteroidDodgers {    constructor() {
         // Set network manager in game for entity synchronization
         this.game.setNetworkManager(this.network);
         
+        // Set UI manager in game for countdown display
+        this.game.setUIManager(this.ui);
+        
         // Initialize network connection
         try {
             await this.network.connectToServer();
